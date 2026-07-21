@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>التزام</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#080b14">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#080b14; --bg-panel:#111729; --bg-card:#141c30; --bg-card-done:#171f2e;
+    --border-soft:rgba(255,255,255,0.07); --border-done:rgba(212,175,106,0.35);
+    --gold:#d4af6a; --gold-dim:rgba(212,175,106,0.16);
+    --text-primary:#eef1f8; --text-secondary:#8b93a7; --text-faint:#5b6478; --night:#2b3a6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:radial-gradient(ellipse 900px 500px at 50% -10%, #16203c 0%, var(--bg-deep) 60%);color:var(--text-primary);font-family:'Tajawal',sans-serif;min-height:100vh;padding:20px 14px 60px;}
+  .wrap{max-width:640px;margin:0 auto;}
+  header{text-align:center;margin-bottom:14px;position:relative;}
+  .gear{position:absolute;left:0;top:0;width:34px;height:34px;border-radius:10px;background:var(--bg-card);border:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
+  .eyebrow{font-size:12px;letter-spacing:.5px;color:var(--gold);font-weight:700;margin-bottom:4px;}
+  h1{font-family:'Amiri',serif;font-weight:700;font-size:30px;}
+  .sub{color:var(--text-secondary);font-size:13px;margin-top:4px;}
+  .levelbadge{display:inline-block;margin-top:8px;background:var(--gold-dim);border:1px solid var(--border-done);color:var(--gold);font-size:11.5px;font-weight:700;padding:4px 14px;border-radius:20px;}
+
+  .tabs{display:flex;gap:5px;background:var(--bg-panel);border:1px solid var(--border-soft);border-radius:14px;padding:5px;margin-bottom:16px;overflow-x:auto;}
+  .tab{flex:1;white-space:nowrap;text-align:center;padding:9px 6px;border-radius:10px;font-size:12.5px;font-weight:700;color:var(--text-secondary);cursor:pointer;transition:.15s;}
+  .tab.active{background:var(--gold-dim);color:var(--gold);}
+  .view{display:none;} .view.active{display:block;}
+
+  .datebar{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0 8px;}
+  .datebar button{background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-secondary);width:34px;height:34px;border-radius:10px;font-size:16px;cursor:pointer;}
+  .datebar button:hover{color:var(--gold);border-color:var(--border-done);}
+  .datelabel{font-size:14px;font-weight:700;min-width:190px;text-align:center;}
+  .todaylink{display:block;text-align:center;font-size:11px;color:var(--text-faint);margin-bottom:14px;cursor:pointer;text-decoration:underline;}
+
+  .arcpanel{background:var(--bg-panel);border:1px solid var(--border-soft);border-radius:20px;padding:22px 18px 16px;margin-bottom:16px;position:relative;overflow:hidden;}
+  .arcpanel::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%, var(--gold-dim), transparent 60%);opacity:.5;pointer-events:none;}
+  .arc-percent{text-align:center;position:relative;}
+  .arc-percent .num{font-size:38px;font-weight:900;color:var(--gold);font-family:'Amiri',serif;}
+  .arc-percent .lbl{font-size:12px;color:var(--text-secondary);margin-top:-2px;}
+  .next-prayer{text-align:center;font-size:11.5px;color:var(--text-secondary);margin-top:6px;position:relative;}
+  svg.arc{width:100%;height:auto;display:block;margin-top:4px;}
+  .node-label,.night-label{font-size:10.5px;fill:var(--text-secondary);font-family:'Tajawal',sans-serif;font-weight:700;}
+
+  .history{display:flex;gap:6px;justify-content:center;margin-top:14px;}
+  .hcell{width:26px;text-align:center;}
+  .hbar{height:28px;background:rgba(255,255,255,0.05);border-radius:5px;position:relative;overflow:hidden;}
+  .hbar .fill{position:absolute;bottom:0;right:0;left:0;background:var(--gold);opacity:.8;}
+  .hcell .hd{font-size:9px;color:var(--text-faint);margin-top:4px;}
+  .hcell.active .hbar{outline:1px solid var(--gold);}
+
+  .toolbar{display:flex;gap:8px;margin-bottom:16px;}
+  .toolbtn{flex:1;background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-secondary);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;padding:10px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .toolbtn:hover{color:var(--gold);border-color:var(--border-done);}
+  .toolbtn.on{background:var(--gold-dim);color:var(--gold);border-color:var(--border-done);}
+
+  .section{margin-bottom:16px;}
+  .section-head{display:flex;align-items:center;gap:8px;margin:0 4px 8px;}
+  .section-head .ico{font-size:15px;}
+  .section-head h2{font-size:14px;font-weight:700;}
+  .section-head .count{margin-right:auto;font-size:11px;color:var(--text-faint);background:rgba(255,255,255,0.04);padding:2px 8px;border-radius:20px;}
+  .hadith{background:var(--gold-dim);border:1px solid var(--border-done);border-radius:12px;padding:10px 12px;margin:0 4px 8px;font-size:12.5px;line-height:1.6;}
+  .hadith .src{display:block;margin-top:4px;font-size:10.5px;color:var(--gold);font-weight:700;}
+
+  .card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:14px;overflow:hidden;}
+  .item{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border-soft);}
+  .item:last-child{border-bottom:none;}
+  .item.done{background:var(--bg-card-done);}
+  .check{width:24px;height:24px;border-radius:8px;flex:none;border:1.5px solid var(--border-soft);display:flex;align-items:center;justify-content:center;transition:.15s;}
+  .item.done .check{background:var(--gold);border-color:var(--gold);}
+  .check svg{width:14px;height:14px;opacity:0;transition:.15s;}
+  .item.done .check svg{opacity:1;}
+  .item .label{flex:1;font-size:14.5px;}
+  .item.done .label{color:var(--text-secondary);text-decoration:line-through;text-decoration-color:var(--text-faint);}
+  .points{font-size:11px;color:var(--gold);background:var(--gold-dim);padding:2px 8px;border-radius:20px;font-weight:700;flex:none;}
+  .item.done .points{opacity:.5;}
+  .item .del{flex:none;width:22px;height:22px;border-radius:7px;color:var(--text-faint);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;}
+  .item .del:hover{color:#e88;background:rgba(230,120,120,.1);}
+  .additem{padding:10px 14px;display:flex;gap:8px;align-items:center;}
+  .additem input{flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border-soft);border-radius:9px;color:var(--text-primary);padding:8px 10px;font-family:'Tajawal',sans-serif;font-size:13px;}
+  .additem button{background:var(--gold-dim);color:var(--gold);border:1px solid var(--border-done);border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+
+  .reset-row{text-align:center;margin-top:26px;}
+  .reset-row button{background:none;border:1px solid var(--border-soft);color:var(--text-faint);font-family:'Tajawal',sans-serif;font-size:12px;padding:8px 18px;border-radius:20px;cursor:pointer;}
+  .reset-row button:hover{color:#e88;border-color:rgba(230,120,120,.4);}
+
+  /* adhkar tab */
+  .adhtabs{display:flex;gap:5px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;}
+  .adhtab{white-space:nowrap;background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-secondary);font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:20px;cursor:pointer;}
+  .adhtab.active{background:var(--gold-dim);color:var(--gold);border-color:var(--border-done);}
+  .adhprogress{font-size:11px;color:var(--text-faint);text-align:center;margin-bottom:12px;}
+  .adhcard{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;user-select:none;transition:.15s;}
+  .adhcard:active{transform:scale(0.99);}
+  .adhtext{font-size:14.5px;line-height:1.9;text-align:center;margin-bottom:10px;}
+  .adhbottom{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .adhring{width:38px;height:38px;border-radius:50%;background:var(--gold-dim);border:1.5px solid var(--border-done);display:flex;align-items:center;justify-content:center;font-family:'Amiri',serif;font-weight:700;color:var(--gold);font-size:14px;}
+  .adhof{font-size:10px;color:var(--text-faint);}
+  .adhvirtue{font-size:11px;color:var(--text-secondary);margin-top:10px;line-height:1.7;border-top:1px dashed var(--border-soft);padding-top:8px;text-align:center;}
+  .adhdone-wrap{margin-top:18px;}
+  .adhdone-head{font-size:12px;color:var(--text-faint);text-align:center;margin-bottom:8px;cursor:pointer;text-decoration:underline;}
+  .adhdone-item{background:rgba(255,255,255,.03);border:1px solid var(--border-soft);border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:12px;color:var(--text-faint);text-align:center;cursor:pointer;}
+  .adhempty{text-align:center;color:var(--text-faint);font-size:13px;padding:30px 10px;}
+
+  /* tasbih tab */
+  .tasbihpanel{text-align:center;}
+  .phrasechips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:10px;}
+  .chip{background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-secondary);font-size:12px;padding:7px 13px;border-radius:20px;cursor:pointer;position:relative;}
+  .chip.active{background:var(--gold-dim);color:var(--gold);border-color:var(--border-done);}
+  .chip .xdel{margin-right:6px;opacity:.6;}
+  .addphrase{display:flex;gap:8px;justify-content:center;margin-bottom:16px;}
+  .addphrase input{background:rgba(255,255,255,.04);border:1px solid var(--border-soft);border-radius:9px;color:var(--text-primary);padding:8px 10px;font-family:'Tajawal',sans-serif;font-size:13px;width:180px;}
+  .addphrase button{background:var(--gold-dim);color:var(--gold);border:1px solid var(--border-done);border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+  .tasbihvirtue{max-width:320px;margin:0 auto 14px;font-size:11.5px;color:var(--text-secondary);line-height:1.7;background:var(--bg-panel);border:1px solid var(--border-soft);border-radius:12px;padding:10px 12px;min-height:20px;}
+  .tasbihcircle{width:220px;height:220px;border-radius:50%;background:var(--bg-panel);border:2px solid var(--border-done);margin:0 auto 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;transition:transform .08s;}
+  .tasbihcircle:active{transform:scale(0.96);}
+  .tasbihcircle .count{font-family:'Amiri',serif;font-size:52px;color:var(--gold);font-weight:700;}
+  .tasbihcircle .phrase{font-size:14px;color:var(--text-secondary);margin-top:4px;}
+  .tasbihcircle .hint{font-size:10.5px;color:var(--text-faint);margin-top:10px;}
+  .tasbihstats{display:flex;gap:10px;justify-content:center;}
+  .tasbihstats .statbox{flex:1;max-width:150px;}
+  .tasbihreset{margin-top:16px;background:none;border:1px solid var(--border-soft);color:var(--text-faint);font-family:'Tajawal',sans-serif;font-size:12px;padding:8px 18px;border-radius:20px;cursor:pointer;}
+
+  /* stats */
+  .statspanel{background:var(--bg-panel);border:1px solid var(--border-soft);border-radius:20px;padding:20px 16px;margin-bottom:16px;}
+  .monthbar{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;}
+  .monthbar button{background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-secondary);width:32px;height:32px;border-radius:9px;cursor:pointer;}
+  .monthlabel{font-weight:700;font-size:14px;min-width:110px;text-align:center;}
+  .statsrow{display:flex;gap:10px;margin-bottom:18px;}
+  .statbox{flex:1;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:14px;padding:12px;text-align:center;}
+  .statbox .v{font-family:'Amiri',serif;font-size:22px;color:var(--gold);font-weight:700;}
+  .statbox .l{font-size:10.5px;color:var(--text-secondary);margin-top:2px;}
+  .chart{display:flex;align-items:flex-end;gap:3px;height:140px;border-bottom:1px solid var(--border-soft);padding-bottom:2px;}
+  .bar{flex:1;background:rgba(212,175,106,0.25);border-radius:3px 3px 0 0;min-height:2px;}
+  .bar.full{background:var(--gold);}
+  .bar.today{outline:1.5px solid #fff;}
+  .daylabels{display:flex;gap:3px;margin-top:6px;}
+  .daylabels span{flex:1;text-align:center;font-size:8px;color:var(--text-faint);}
+
+  .modalbg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:50;}
+  .modalbg.show{display:flex;}
+  .modal{background:var(--bg-panel);border:1px solid var(--border-soft);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:640px;max-height:85vh;overflow:auto;}
+  .modal h3{font-size:15px;margin-bottom:10px;}
+  .modal p{font-size:12.5px;color:var(--text-secondary);line-height:1.8;margin-bottom:10px;white-space:pre-line;}
+  .modal .close{display:block;margin:14px auto 0;background:var(--gold-dim);color:var(--gold);border:1px solid var(--border-done);padding:9px 20px;border-radius:20px;font-size:12.5px;font-weight:700;cursor:pointer;}
+
+  .setrow{margin-bottom:16px;}
+  .setrow label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;color:var(--text-primary);}
+  .setrow .desc{font-size:11px;color:var(--text-faint);margin-bottom:8px;line-height:1.6;}
+  .setrow select, .setrow input[type=text]{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border-soft);border-radius:10px;color:var(--text-primary);padding:9px 10px;font-family:'Tajawal',sans-serif;font-size:13px;}
+  .levelrow{display:flex;gap:6px;}
+  .levelopt{flex:1;text-align:center;padding:9px 4px;border-radius:10px;background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-secondary);font-size:12px;font-weight:700;cursor:pointer;}
+  .levelopt.active{background:var(--gold-dim);color:var(--gold);border-color:var(--border-done);}
+
+  footer{text-align:center;margin-top:24px;color:var(--text-faint);font-size:11px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="gear" id="gearBtn">⚙️</div>
+    <div class="eyebrow">حاسب نفسك قبل أن تُحاسَب</div>
+    <h1>التزام</h1>
+    <div class="sub">تابع عباداتك اليومية بثبات، خطوة خطوة</div>
+    <div class="levelbadge" id="levelBadge">مبتدئ</div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-view="today">المحاسبة</div>
+    <div class="tab" data-view="adhkar">الأذكار</div>
+    <div class="tab" data-view="tasbih">المسبحة</div>
+    <div class="tab" data-view="stats">الإحصائيات</div>
+  </div>
+
+  <div class="view active" id="view-today">
+    <div class="datebar">
+      <button id="prevDay">‹</button>
+      <div class="datelabel" id="dateLabel">—</div>
+      <button id="nextDay">›</button>
+    </div>
+    <div class="todaylink" id="jumpToday" style="display:none;">الرجوع لليوم</div>
+
+    <div class="arcpanel">
+      <div class="arc-percent"><div class="num" id="percentNum">0%</div><div class="lbl">إجمالي الإنجاز</div></div>
+      <div class="next-prayer" id="nextPrayer"></div>
+      <svg class="arc" viewBox="0 0 640 190" id="arcSvg"></svg>
+      <div class="history" id="historyStrip"></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbtn" id="remindBtn">🔔 تذكيرات الصلاة</div>
+      <div class="toolbtn" id="shareBtn">📤 مشاركة التقدم</div>
+    </div>
+
+    <div id="sections"></div>
+    <div class="reset-row"><button id="resetDay">إعادة ضبط هذا اليوم</button></div>
+    <footer>تُحفظ بياناتك تلقائيًا على هذا الجهاز</footer>
+  </div>
+
+  <div class="view" id="view-adhkar">
+    <div class="adhtabs" id="adhTabs"></div>
+    <div class="adhprogress" id="adhProgress"></div>
+    <div id="adhkarList"></div>
+  </div>
+
+  <div class="view" id="view-tasbih">
+    <div class="tasbihpanel">
+      <div class="phrasechips" id="phraseChips"></div>
+      <div class="addphrase">
+        <input type="text" id="newPhraseInput" placeholder="أضف ذكر جديد...">
+        <button id="addPhraseBtn">إضافة</button>
+      </div>
+      <div class="tasbihvirtue" id="tasbihVirtue"></div>
+      <div class="tasbihcircle" id="tasbihCircle">
+        <div class="count" id="tasbihCount">0</div>
+        <div class="phrase" id="tasbihPhrase">سبحان الله</div>
+        <div class="hint">دوس عشان تعد</div>
+      </div>
+      <div class="tasbihstats">
+        <div class="statbox"><div class="v" id="tasbihToday">0</div><div class="l">النهاردة</div></div>
+        <div class="statbox"><div class="v" id="tasbihTotal">0</div><div class="l">الإجمالي</div></div>
+      </div>
+      <button class="tasbihreset" id="tasbihReset">تصفير عداد النهاردة</button>
+    </div>
+  </div>
+
+  <div class="view" id="view-stats">
+    <div class="statspanel">
+      <div class="monthbar"><button id="prevMonth">‹</button><div class="monthlabel" id="monthLabel">—</div><button id="nextMonth">›</button></div>
+      <div class="statsrow">
+        <div class="statbox"><div class="v" id="statAvg">0%</div><div class="l">متوسط الشهر</div></div>
+        <div class="statbox"><div class="v" id="statBest">0%</div><div class="l">أفضل يوم</div></div>
+        <div class="statbox"><div class="v" id="statDone">0</div><div class="l">أيام مسجّلة</div></div>
+      </div>
+      <div class="chart" id="chart"></div>
+      <div class="daylabels" id="chartLabels"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modalbg" id="modalBg"><div class="modal"><h3 id="modalTitle"></h3><p id="modalText"></p><button class="close" id="modalClose">تمام</button></div></div>
+
+<div class="modalbg" id="settingsBg">
+  <div class="modal">
+    <h3>الإعدادات</h3>
+    <div class="setrow">
+      <label>المستوى الحالي</label>
+      <div class="desc">بيترقّى تلقائي كل ١٠ أيام. تقدر تغيّره يدوي هنا لو حابب.</div>
+      <div class="levelrow" id="levelRow"></div>
+    </div>
+    <div class="setrow">
+      <label>ملف صوت الأذان</label>
+      <div class="desc">دلوقتي شغال بصوت مؤقت (نغمة تنبيه). لو رفعت ملف MP3 حقيقي في نفس مجلد التطبيق، اكتب اسمه هنا بالظبط (مثال: adhan.mp3).</div>
+      <input type="text" id="audioFileInput" placeholder="adhan.mp3">
+    </div>
+    <button class="close" id="settingsClose">حفظ وإغلاق</button>
+  </div>
+</div>
+
+<script>
+/* ---------- storage abstraction ---------- */
+const hasClaudeStorage = (typeof window.storage !== 'undefined');
+const store = {
+  async get(key){ if(hasClaudeStorage){ try{ const r=await window.storage.get(key,false); return r?r.value:null; }catch(e){ return null; } } return localStorage.getItem(key); },
+  async set(key,value){ if(hasClaudeStorage){ try{ await window.storage.set(key,value,false); }catch(e){} } else { try{ localStorage.setItem(key,value); }catch(e){} } }
+};
+
+/* ---------- level system ---------- */
+const LEVEL_NAMES = ['مبتدئ','متوسط','محترف'];
+let currentLevel = 0;
+let levelStartDate = null;
+
+async function loadLevel(){
+  const raw = await store.get('config:level');
+  if(raw){ const cfg = JSON.parse(raw); currentLevel = cfg.level||0; levelStartDate = cfg.startDate; }
+  if(!levelStartDate){ levelStartDate = dkey(new Date()); await saveLevel(); }
+}
+async function saveLevel(){ await store.set('config:level', JSON.stringify({level:currentLevel, startDate:levelStartDate})); }
+async function checkAutoLevelUp(){
+  if(currentLevel >= 2) return;
+  const start = new Date(levelStartDate);
+  const now = new Date();
+  const days = Math.floor((now-start)/(1000*60*60*24));
+  if(days >= 10){
+    currentLevel = Math.min(2, currentLevel+1);
+    levelStartDate = dkey(now);
+    await saveLevel();
+    showModal('🎉 مبروك الترقية', `اترقّيت لمستوى "${LEVEL_NAMES[currentLevel]}"! كمّل بنفس الثبات.`);
+  }
+}
+function updateLevelBadge(){ document.getElementById('levelBadge').textContent = 'المستوى: ' + LEVEL_NAMES[currentLevel]; }
+
+/* ---------- prayer/quran/qiyam data (level-aware) ---------- */
+const HADITH = {
+  fajr:{text:'«مَن صلَّى البَرْدَيْنِ دخل الجنة» (والبَرْدان: الفجر والعصر)', src:'متفق عليه'},
+  dhuhr:{text:'«أفضل الأعمال الصلاة في أول وقتها»', src:'رواه الترمذي'},
+  asr:{text:'«مَن فاتته صلاة العصر فكأنما وُتِر أهله وماله»', src:'متفق عليه'},
+  maghrib:{text:'«الصلوات الخمس... كفارات لما بينهن، ما اجتُنبت الكبائر»', src:'رواه مسلم'},
+  isha:{text:'«مَن صلّى العشاء في جماعة فكأنما قام نصف الليل»', src:'رواه مسلم'},
+  qiyam:{text:'«أفضل الصلاة بعد الفريضة صلاة الليل»', src:'رواه مسلم'},
+};
+
+const DEFAULT_SECTIONS = [
+  { key:'fajr', title:'الفجر', ico:'🌙', arcNode:true, items:[
+    {id:'fajr_fard', label:'الفريضة (جماعة أو في وقتها)', pts:4, minLevel:0},
+    {id:'fajr_sunnah_q', label:'السنة القبلية', pts:4, minLevel:1},
+    {id:'fajr_duha', label:'الضحى (٤ ركعات)', pts:4, minLevel:2},
+  ]},
+  { key:'dhuhr', title:'الظهر', ico:'☀️', arcNode:true, items:[
+    {id:'dhuhr_fard', label:'الفريضة (جماعة أو في وقتها)', pts:4, minLevel:0},
+    {id:'dhuhr_sunnah_q', label:'السنة القبلية', pts:4, minLevel:1},
+    {id:'dhuhr_sunnah_b', label:'السنة البعدية', pts:4, minLevel:1},
+  ]},
+  { key:'asr', title:'العصر', ico:'🌤️', arcNode:true, items:[
+    {id:'asr_fard', label:'الفريضة (جماعة أو في وقتها)', pts:4, minLevel:0},
+  ]},
+  { key:'maghrib', title:'المغرب', ico:'🌇', arcNode:true, items:[
+    {id:'maghrib_fard', label:'الفريضة (جماعة أو في وقتها)', pts:4, minLevel:0},
+    {id:'maghrib_sunnah_b', label:'السنة البعدية', pts:4, minLevel:1},
+  ]},
+  { key:'isha', title:'العشاء', ico:'🌆', arcNode:true, items:[
+    {id:'isha_fard', label:'الفريضة (جماعة أو في وقتها)', pts:4, minLevel:0},
+    {id:'isha_sunnah_b', label:'السنة البعدية', pts:4, minLevel:1},
+  ]},
+  { key:'qiyam', title:'قيام الليل والوتر', ico:'✨', night:true, items:[
+    {id:'qiyam_rakaa', label:'ركعة قيام قبل النوم', levelLabel:{0:'ركعة قيام قبل النوم',1:'ركعتان قيام الليل',2:'٤ ركعات قيام الليل'}, pts:4, minLevel:0},
+    {id:'qiyam_witr', label:'الوتر', pts:1, minLevel:1},
+    {id:'qiyam_wird', label:'الورد (ربعين)', pts:4, minLevel:2},
+  ]},
+  { key:'quran', title:'القرآن والصيام', ico:'📖', items:[
+    {id:'quran_wird', label:'نصف صفحة', levelLabel:{0:'نصف صفحة',1:'صفحة كاملة',2:'حفظ نصف صفحة + قراءة ٦ أرباع'}, pts:4, minLevel:0},
+  ]},
+];
+
+function resolveLabel(item, level){
+  if(!item.levelLabel) return item.label;
+  const keys = Object.keys(item.levelLabel).map(Number).filter(k=>k<=level).sort((a,b)=>b-a);
+  return keys.length ? item.levelLabel[keys[0]] : item.label;
+}
+
+let SECTIONS = [];
+let removedIds = [];
+let customItemsAll = [];
+function buildSections(){
+  SECTIONS = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+  SECTIONS.forEach(s=>{
+    s.items = s.items.filter(i=> (i.minLevel||0) <= currentLevel && !removedIds.includes(i.id));
+    s.items.forEach(i=>{ i.label = resolveLabel(i, currentLevel); });
+    customItemsAll.filter(ci=>ci.sectionKey===s.key).forEach(ci=> s.items.push({id:ci.id, label:ci.label, pts:ci.pts}));
+  });
+}
+
+/* ---------- adhkar tab data (from حصن المسلم، بالعدد الوارد في السنة) ---------- */
+const MORNING_ADHKAR = [
+  {id:'m_kursi', text:'آية الكرسي: «اللهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...»', count:1, virtue:'«مَن قرأها حين يصبح أُجير من الجن حتى يمسي» — حديث حسن.'},
+  {id:'m_ikhlas', text:'قل هو الله أحد (سورة الإخلاص كاملة)', count:3, virtue:'مع الفلق والناس، «تكفيك من كل شيء» رواه أبو داود والترمذي.'},
+  {id:'m_falaq', text:'قل أعوذ برب الفلق (سورة الفلق كاملة)', count:3, virtue:'من المعوذتين، حصن من كل شر.'},
+  {id:'m_nas', text:'قل أعوذ برب الناس (سورة الناس كاملة)', count:3, virtue:'من المعوذتين، حصن من كل شر.'},
+  {id:'m_asbahna', text:'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له...', count:1, virtue:'ذكر الصباح الجامع، رواه مسلم.'},
+  {id:'m_bika', text:'اللهم بك أصبحنا، وبك أمسينا، وبك نحيا وبك نموت وإليك النشور', count:1, virtue:'رواه الترمذي وأبو داود.'},
+  {id:'m_sayyid', text:'سيد الاستغفار: اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك...', count:1, virtue:'«من قالها موقنًا بها حين يصبح فمات من يومه دخل الجنة» رواه البخاري.'},
+  {id:'m_afini', text:'اللهم عافني في بدني، اللهم عافني في سمعي، اللهم عافني في بصري', count:3, virtue:'رواه أبو داود.'},
+  {id:'m_kufr', text:'اللهم إني أعوذ بك من الكفر والفقر، وأعوذ بك من عذاب القبر', count:3, virtue:'رواه أبو داود والنسائي.'},
+  {id:'m_hasbi', text:'حسبي الله لا إله إلا هو، عليه توكلت وهو رب العرش العظيم', count:7, virtue:'«من قالها كفاه الله ما أهمه» رواه أبو داود.'},
+  {id:'m_ismihi', text:'بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم', count:3, virtue:'«لم يضره شيء» رواه أبو داود والترمذي.'},
+  {id:'m_radeetu', text:'رضيت بالله ربًا، وبالإسلام دينًا، وبمحمد ﷺ نبيًا', count:3, virtue:'«كان حقًا على الله أن يرضيه» رواه أحمد.'},
+  {id:'m_subhanah', text:'سبحان الله وبحمده', count:100, virtue:'«حُطّت خطاياه وإن كانت مثل زبد البحر» متفق عليه.'},
+  {id:'m_la_ilaha', text:'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير', count:10, virtue:'«كانت له عدل عشر رقاب» متفق عليه.'},
+  {id:'m_istighfar', text:'أستغفر الله وأتوب إليه', count:100, virtue:'كان النبي ﷺ يستغفر في اليوم أكثر من سبعين مرة.'},
+  {id:'m_salawat', text:'اللهم صلِّ وسلم على نبينا محمد', count:10, virtue:'«من صلى عليّ صلاة صلى الله عليه بها عشرًا» رواه مسلم.'},
+];
+const EVENING_ADHKAR = MORNING_ADHKAR.map(i=>{
+  const map = {
+    m_asbahna:{id:'e_amsayna', text:'أمسينا وأمسى الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له...', virtue:'ذكر المساء الجامع، رواه مسلم.'},
+    m_bika:{id:'e_bika', text:'اللهم بك أمسينا، وبك أصبحنا، وبك نحيا وبك نموت وإليك المصير', virtue:'رواه الترمذي.'},
+    m_sayyid:{id:'e_sayyid', text:'سيد الاستغفار: اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك...', virtue:'«من قالها موقنًا بها حين يمسي فمات من ليلته دخل الجنة» رواه البخاري.'},
+  };
+  if(map[i.id]) return Object.assign({}, i, map[i.id]);
+  if(i.id==='m_kursi') return Object.assign({}, i, {id:'e_kursi', virtue:'«مَن قرأها حين يمسي أُجير من الجن حتى يصبح» — حديث حسن.'});
+  return Object.assign({}, i, {id:'e_'+i.id.slice(2)});
+});
+const WAKE_ADHKAR = [
+  {id:'w_hamd', text:'الحمد لله الذي أحيانا بعد ما أماتنا وإليه النشور', count:1, virtue:'دعاء الاستيقاظ من النوم، رواه البخاري.'},
+];
+const SLEEP_ADHKAR = [
+  {id:'s_kursi', text:'قراءة آية الكرسي قبل النوم', count:1, virtue:'«لا يزال عليك من الله حافظ ولا يقربك شيطان حتى تصبح» رواه البخاري.'},
+  {id:'s_muawidhat', text:'قراءة المعوذتين (الفلق والناس) والنفث في اليدين ومسح الجسد', count:3, virtue:'كان النبي ﷺ يفعلها كل ليلة قبل النوم، رواه البخاري.'},
+  {id:'s_bismika', text:'باسمك اللهم أموت وأحيا', count:1, virtue:'رواه البخاري.'},
+];
+const MISC_ADHKAR = [
+  {id:'x_wudu', text:'أشهد أن لا إله إلا الله وحده لا شريك له، وأشهد أن محمدًا عبده ورسوله (بعد الوضوء)', count:1, virtue:'«فُتحت له أبواب الجنة الثمانية يدخل من أيها شاء» رواه مسلم.'},
+  {id:'x_khalaa', text:'اللهم إني أعوذ بك من الخبث والخبائث (دخول الخلاء) / غفرانك (عند الخروج)', count:1, virtue:'متفق عليه.'},
+  {id:'x_thawb', text:'الحمد لله الذي كساني هذا (الثوب) ورزقنيه من غير حول مني ولا قوة', count:1, virtue:'رواه أبو داود.'},
+  {id:'x_manzil', text:'بسم الله ولجنا، وبسم الله خرجنا، وعلى الله ربنا توكلنا (دخول المنزل)', count:1, virtue:'«قال الشيطان لا مبيت لكم ولا عشاء» رواه مسلم.'},
+  {id:'x_masha', text:'اللهم اجعل في قلبي نورًا... (المضي إلى المسجد)', count:1, virtue:'«من غدا إلى المسجد أو راح أعدّ الله له نزلاً في الجنة» متفق عليه.'},
+  {id:'x_masjid', text:'اللهم افتح لي أبواب رحمتك (دخول المسجد) / اللهم إني أسألك من فضلك (الخروج)', count:1, virtue:'رواه مسلم.'},
+  {id:'x_akl', text:'بسم الله (بداية الأكل) / الحمد لله الذي أطعمني هذا (بعد الأكل)', count:1, virtue:'رواه أبو داود والترمذي.'},
+  {id:'x_rukoub', text:'سبحان الذي سخر لنا هذا وما كنا له مقرنين وإنا إلى ربنا لمنقلبون', count:1, virtue:'دعاء الركوب، من القرآن الكريم.'},
+];
+const ADHKAR_CATEGORIES = [
+  {key:'sabah', title:'الصباح', items: MORNING_ADHKAR},
+  {key:'masaa', title:'المساء', items: EVENING_ADHKAR},
+  {key:'istiqaz', title:'الاستيقاظ', items: WAKE_ADHKAR},
+  {key:'nawm', title:'قبل النوم', items: SLEEP_ADHKAR},
+  {key:'mutafarreqa', title:'متفرقة', items: MISC_ADHKAR},
+];
+let currentAdhkarTab = 'sabah';
+
+/* ---------- tasbih data ---------- */
+const DEFAULT_TASBIH_PHRASES = ['سبحان الله','الحمد لله','الله أكبر','لا إله إلا الله','أستغفر الله','سبحان الله وبحمده','لا حول ولا قوة إلا بالله'];
+const TASBIH_VIRTUES = {
+  'سبحان الله':'«كلمتان خفيفتان على اللسان، ثقيلتان في الميزان، حبيبتان إلى الرحمن» متفق عليه.',
+  'الحمد لله':'«الحمد لله تملأ الميزان» رواه مسلم.',
+  'الله أكبر':'التكبير من أعظم الذكر، وبه تُفتتح الصلاة.',
+  'لا إله إلا الله':'«أفضل الذكر لا إله إلا الله» رواه الترمذي.',
+  'أستغفر الله':'«من لزم الاستغفار جعل الله له من كل هم فرجًا» رواه أبو داود.',
+  'سبحان الله وبحمده':'«من قالها في يوم مائة مرة حُطّت خطاياه وإن كانت مثل زبد البحر» متفق عليه.',
+  'لا حول ولا قوة إلا بالله':'«كنز من كنوز الجنة» متفق عليه.',
+};
+let TASBIH_PHRASES = DEFAULT_TASBIH_PHRASES.slice();
+let currentPhrase = TASBIH_PHRASES[0];
+
+/* ---------- notification content pool (rotating, 3x/day) ---------- */
+const NOTIF_POOL = [
+  {type:'آية', text:'«إِنَّ مَعَ الْعُسْرِ يُسْرًا»', src:'سورة الشرح: 6'},
+  {type:'آية', text:'«وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا»', src:'سورة الطلاق: 2'},
+  {type:'حديث', text:'«إنما الأعمال بالنيات»', src:'متفق عليه'},
+  {type:'حديث', text:'«التبسم في وجه أخيك صدقة»', src:'رواه الترمذي'},
+  {type:'حديث', text:'«الدين النصيحة»', src:'رواه مسلم'},
+  {type:'تحفيزية', text:'خطوة صغيرة النهاردة أحسن من توقف تاني — كمّل بثبات.'},
+  {type:'تحفيزية', text:'الاستمرار على القليل خير من الانقطاع عن الكثير.'},
+  {type:'حديث', text:'«أحب الأعمال إلى الله أدومها وإن قل»', src:'متفق عليه'},
+  {type:'تحفيزية', text:'كل ما تحاسب نفسك النهاردة، بتبقى أقرب لنفسك اللي عايزها بكرة.'},
+];
+
+/* ---------- helpers ---------- */
+function dkey(date){ const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+function isSameDay(a,b){ return dkey(a)===dkey(b); }
+function formatLabel(date){ return date.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+function allItems(){ return SECTIONS.flatMap(s=>s.items); }
+function totalPoints(){ return allItems().reduce((a,i)=>a+i.pts,0); }
+function showModal(title, text){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = text;
+  document.getElementById('modalBg').classList.add('show');
+}
+document.getElementById('modalClose').onclick = ()=> document.getElementById('modalBg').classList.remove('show');
+
+let currentDate = new Date();
+let checks = {};
+let statsMonth = new Date();
+let reminderCfg = { enabled:false, lat:null, lng:null, city:null, country:null, audioFile:null };
+let scheduledTimers = [];
+
+/* ---------- config ---------- */
+async function loadConfig(){
+  try{
+    const raw = await store.get('config:items');
+    if(raw){ const cfg = JSON.parse(raw); removedIds = cfg.removed||[]; customItemsAll = cfg.custom||[]; }
+  }catch(e){}
+  try{
+    const raw = await store.get('config:reminders');
+    if(raw) reminderCfg = Object.assign(reminderCfg, JSON.parse(raw));
+  }catch(e){}
+  buildSections();
+  updateReminderBtn();
+}
+async function saveItemsConfig(){ await store.set('config:items', JSON.stringify({removed:removedIds, custom:customItemsAll})); }
+async function saveReminderCfg(){ await store.set('config:reminders', JSON.stringify(reminderCfg)); }
+
+/* ---------- day data ---------- */
+async function loadDay(date){ const raw = await store.get('day:'+dkey(date)); checks = raw?JSON.parse(raw):{}; }
+async function saveDay(date){ await store.set('day:'+dkey(date), JSON.stringify(checks)); }
+function sectionPercent(section){ const total=section.items.reduce((a,i)=>a+i.pts,0); const done=section.items.reduce((a,i)=>a+(checks[i.id]?i.pts:0),0); return total?done/total:0; }
+function overallPercent(){ const done=allItems().reduce((a,i)=>a+(checks[i.id]?i.pts:0),0); const tp=totalPoints(); return tp?Math.round((done/tp)*100):0; }
+
+/* ---------- arc ---------- */
+function renderArc(){
+  const svg = document.getElementById('arcSvg');
+  const arcNodes = SECTIONS.filter(s=>s.arcNode);
+  const nightNode = SECTIONS.find(s=>s.night);
+  const w=640, baseY=120, peakLift=60, n=arcNodes.length;
+  const xs = arcNodes.map((_,i)=> 60 + (w-120)*(i/(n-1)));
+  const ys = arcNodes.map((_,i)=>{ const t=i/(n-1); return baseY - Math.sin(t*Math.PI)*peakLift; });
+  let path = `M ${xs[0]} ${ys[0]}`;
+  for(let i=1;i<xs.length;i++){ const mx=(xs[i-1]+xs[i])/2; path += ` Q ${mx} ${Math.min(ys[i-1],ys[i])-10}, ${xs[i]} ${ys[i]}`; }
+  let svgContent = `<path d="${path}" fill="none" stroke="var(--border-soft)" stroke-width="2"/><line x1="40" y1="${baseY+30}" x2="${w-40}" y2="${baseY+30}" stroke="var(--border-soft)" stroke-width="1" stroke-dasharray="3 5"/>`;
+  arcNodes.forEach((s,i)=>{
+    const p=sectionPercent(s), r=17, opacity=0.15+p*0.85, full=p>=1;
+    svgContent += `<circle cx="${xs[i]}" cy="${ys[i]}" r="${r}" fill="${full?'var(--gold)':'rgba(212,175,106,'+opacity.toFixed(2)+')'}" stroke="var(--gold)" stroke-width="${full?0:1}" opacity="${full?1:0.9}"/>${full?`<path d="M ${xs[i]-6} ${ys[i]} l 4 4 l 8 -8" stroke="#0a0e1a" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`:''}<text x="${xs[i]}" y="${ys[i]+r+16}" text-anchor="middle" class="node-label">${s.title}</text>`;
+  });
+  if(nightNode){
+    const p=sectionPercent(nightNode), nx=xs[xs.length-1], ny=baseY+62, full=p>=1, opacity=0.15+p*0.85;
+    svgContent += `<line x1="${nx}" y1="${ys[ys.length-1]+17}" x2="${nx}" y2="${ny-14}" stroke="var(--night)" stroke-width="1.5" stroke-dasharray="2 4"/><circle cx="${nx}" cy="${ny}" r="14" fill="${full?'var(--gold)':'rgba(212,175,106,'+opacity.toFixed(2)+')'}" stroke="var(--gold)" stroke-width="${full?0:1}"/><text x="${nx}" y="${ny+30}" text-anchor="middle" class="night-label">قيام الليل</text>`;
+  }
+  svg.innerHTML = svgContent;
+  document.getElementById('percentNum').textContent = overallPercent()+'%';
+}
+
+/* ---------- sections render ---------- */
+function renderSections(){
+  const container = document.getElementById('sections');
+  container.innerHTML = '';
+  SECTIONS.forEach(section=>{
+    const doneCount = section.items.filter(i=>checks[i.id]).length;
+    const wrap = document.createElement('div');
+    wrap.className = 'section';
+    const hadith = HADITH[section.key];
+    wrap.innerHTML = `
+      <div class="section-head"><span class="ico">${section.ico}</span><h2>${section.title}</h2><span class="count">${doneCount}/${section.items.length}</span></div>
+      ${hadith?`<div class="hadith">${hadith.text}<span class="src">${hadith.src}</span></div>`:''}
+      <div class="card">
+        ${section.items.map(item=>`
+          <div class="item ${checks[item.id]?'done':''}" data-id="${item.id}">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#0a0e1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="label">${item.label}</div><div class="points">${item.pts}</div>
+            <div class="del" data-del="${item.id}" data-sec="${section.key}">✕</div>
+          </div>`).join('')}
+        <div class="additem"><input type="text" placeholder="إضافة بند جديد..." data-add-input="${section.key}"><button data-add-btn="${section.key}">إضافة</button></div>
+      </div>`;
+    container.appendChild(wrap);
+  });
+  container.querySelectorAll('.item').forEach(el=>{
+    el.addEventListener('click', async (ev)=>{
+      if(ev.target.dataset.del) return;
+      const id = el.dataset.id;
+      checks[id] = !checks[id];
+      el.classList.toggle('done', !!checks[id]);
+      await saveDay(currentDate);
+      renderArc(); renderSectionCounts(); renderHistory();
+    });
+  });
+  container.querySelectorAll('[data-del]').forEach(el=>{
+    el.addEventListener('click', async (ev)=>{
+      ev.stopPropagation();
+      const id = el.dataset.del, secKey = el.dataset.sec;
+      const sec = SECTIONS.find(s=>s.key===secKey);
+      sec.items = sec.items.filter(i=>i.id!==id);
+      const defSec = DEFAULT_SECTIONS.find(s=>s.key===secKey);
+      const isDefault = defSec.items.some(i=>i.id===id);
+      if(isDefault && !removedIds.includes(id)) removedIds.push(id);
+      customItemsAll = customItemsAll.filter(ci=>ci.id!==id);
+      delete checks[id];
+      await saveItemsConfig(); await saveDay(currentDate);
+      renderSections(); renderArc(); renderHistory();
+    });
+  });
+  container.querySelectorAll('[data-add-btn]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const secKey = btn.dataset.addBtn;
+      const input = container.querySelector(`[data-add-input="${secKey}"]`);
+      const label = input.value.trim();
+      if(!label) return;
+      const id = 'custom_'+secKey+'_'+Date.now();
+      customItemsAll.push({sectionKey:secKey, id, label, pts:4});
+      const sec = SECTIONS.find(s=>s.key===secKey);
+      sec.items.push({id, label, pts:4});
+      input.value = '';
+      await saveItemsConfig();
+      renderSections(); renderArc(); renderHistory();
+    });
+  });
+}
+function renderSectionCounts(){
+  document.querySelectorAll('.section').forEach((wrap, idx)=>{
+    const section = SECTIONS[idx];
+    wrap.querySelector('.count').textContent = `${section.items.filter(i=>checks[i.id]).length}/${section.items.length}`;
+  });
+}
+
+/* ---------- history ---------- */
+async function renderHistory(){
+  const strip = document.getElementById('historyStrip');
+  strip.innerHTML = '';
+  const days = [];
+  for(let i=6;i>=0;i--){ const d=new Date(currentDate); d.setDate(d.getDate()-i); days.push(d); }
+  const percents = await Promise.all(days.map(async d=>{
+    if(isSameDay(d,currentDate)) return overallPercent();
+    const raw = await store.get('day:'+dkey(d));
+    const c = raw?JSON.parse(raw):{};
+    const done = allItems().reduce((a,i)=>a+(c[i.id]?i.pts:0),0);
+    const tp = totalPoints();
+    return tp?Math.round((done/tp)*100):0;
+  }));
+  days.forEach((d,i)=>{
+    const cell = document.createElement('div');
+    cell.className = 'hcell'+(isSameDay(d,currentDate)?' active':'');
+    cell.innerHTML = `<div class="hbar"><div class="fill" style="height:${percents[i]}%"></div></div><div class="hd">${d.toLocaleDateString('ar-EG',{weekday:'narrow'})}</div>`;
+    strip.appendChild(cell);
+  });
+}
+
+/* ---------- adhkar tab ---------- */
+let adhkarCounts = {};
+async function loadAdhkar(date){ const raw = await store.get('adhkar:'+dkey(date)); adhkarCounts = raw?JSON.parse(raw):{}; }
+async function saveAdhkar(date){ await store.set('adhkar:'+dkey(date), JSON.stringify(adhkarCounts)); }
+
+function renderAdhTabs(){
+  const wrap = document.getElementById('adhTabs');
+  wrap.innerHTML = ADHKAR_CATEGORIES.map(c=>`<div class="adhtab ${c.key===currentAdhkarTab?'active':''}" data-cat="${c.key}">${c.title}</div>`).join('');
+  wrap.querySelectorAll('[data-cat]').forEach(el=> el.onclick = ()=>{
+    currentAdhkarTab = el.dataset.cat;
+    renderAdhTabs(); renderAdhkarTab();
+  });
+}
+
+function renderAdhkarTab(){
+  const cat = ADHKAR_CATEGORIES.find(c=>c.key===currentAdhkarTab);
+  const list = document.getElementById('adhkarList');
+  const progressEl = document.getElementById('adhProgress');
+  const pending = cat.items.filter(i=> (adhkarCounts[i.id]||0) < i.count);
+  const done = cat.items.filter(i=> (adhkarCounts[i.id]||0) >= i.count);
+  progressEl.textContent = `${done.length}/${cat.items.length} اتقرأ`;
+
+  if(pending.length === 0 && cat.items.length>0){
+    list.innerHTML = `<div class="adhempty">✅ خلّصت كل أذكار ${cat.title} النهاردة، بارك الله فيك.</div>`;
+  } else {
+    list.innerHTML = pending.map(item=>{
+      const c = adhkarCounts[item.id]||0;
+      return `<div class="adhcard" data-id="${item.id}">
+        <div class="adhtext">${item.text}</div>
+        <div class="adhbottom">
+          <div class="adhring">${c}</div>
+          <div class="adhof">من ${item.count}</div>
+        </div>
+        <div class="adhvirtue">${item.virtue}</div>
+      </div>`;
+    }).join('');
+  }
+
+  list.querySelectorAll('.adhcard').forEach(card=>{
+    card.onclick = async ()=>{
+      const id = card.dataset.id;
+      const item = cat.items.find(i=>i.id===id);
+      adhkarCounts[id] = Math.min(item.count, (adhkarCounts[id]||0)+1);
+      await saveAdhkar(currentDate);
+      renderAdhkarTab();
+    };
+  });
+
+  if(done.length){
+    const doneWrap = document.createElement('div');
+    doneWrap.className = 'adhdone-wrap';
+    doneWrap.innerHTML = `<div class="adhdone-head" id="toggleDoneList">عرض المكتمل (${done.length}) — دوس عشان ترجّع أي ذكر بالغلط</div><div id="doneListInner" style="display:none;"></div>`;
+    list.appendChild(doneWrap);
+    doneWrap.querySelector('#toggleDoneList').onclick = ()=>{
+      const inner = doneWrap.querySelector('#doneListInner');
+      const showing = inner.style.display !== 'none';
+      inner.style.display = showing ? 'none' : 'block';
+      if(!showing){
+        inner.innerHTML = done.map(item=>`<div class="adhdone-item" data-undo="${item.id}">${item.text.slice(0,40)}${item.text.length>40?'...':''} ✓</div>`).join('');
+        inner.querySelectorAll('[data-undo]').forEach(el=> el.onclick = async ()=>{
+          adhkarCounts[el.dataset.undo] = 0;
+          await saveAdhkar(currentDate);
+          renderAdhkarTab();
+        });
+      }
+    };
+  }
+}
+
+/* ---------- tasbih tab ---------- */
+let tasbihToday = 0, tasbihTotal = 0;
+async function loadTasbih(){
+  const t = await store.get('tasbih:today:'+dkey(new Date()));
+  tasbihToday = t ? parseInt(t) : 0;
+  const tot = await store.get('tasbih:total');
+  tasbihTotal = tot ? parseInt(tot) : 0;
+}
+async function saveTasbih(){
+  await store.set('tasbih:today:'+dkey(new Date()), String(tasbihToday));
+  await store.set('tasbih:total', String(tasbihTotal));
+}
+async function loadCustomPhrases(){
+  const raw = await store.get('config:tasbihCustom');
+  const custom = raw ? JSON.parse(raw) : [];
+  TASBIH_PHRASES = DEFAULT_TASBIH_PHRASES.concat(custom);
+}
+async function saveCustomPhrases(){
+  const custom = TASBIH_PHRASES.filter(p=>!DEFAULT_TASBIH_PHRASES.includes(p));
+  await store.set('config:tasbihCustom', JSON.stringify(custom));
+}
+function renderTasbihVirtue(){
+  const v = TASBIH_VIRTUES[currentPhrase];
+  document.getElementById('tasbihVirtue').textContent = v || 'ذكرك الخاص — بارك الله فيك على المحافظة عليه.';
+}
+function renderTasbihChips(){
+  const wrap = document.getElementById('phraseChips');
+  wrap.innerHTML = TASBIH_PHRASES.map(p=>{
+    const isCustom = !DEFAULT_TASBIH_PHRASES.includes(p);
+    return `<div class="chip ${p===currentPhrase?'active':''}" data-p="${p}">${isCustom?'<span class="xdel" data-del-phrase="'+p+'">✕</span>':''}${p}</div>`;
+  }).join('');
+  wrap.querySelectorAll('.chip').forEach(chip=> chip.onclick = (ev)=>{
+    if(ev.target.dataset.delPhrase) return;
+    currentPhrase = chip.dataset.p;
+    document.getElementById('tasbihPhrase').textContent = currentPhrase;
+    renderTasbihVirtue();
+    renderTasbihChips();
+  });
+  wrap.querySelectorAll('[data-del-phrase]').forEach(el=> el.onclick = async (ev)=>{
+    ev.stopPropagation();
+    const p = el.dataset.delPhrase;
+    TASBIH_PHRASES = TASBIH_PHRASES.filter(x=>x!==p);
+    if(currentPhrase===p){ currentPhrase = TASBIH_PHRASES[0]; document.getElementById('tasbihPhrase').textContent = currentPhrase; renderTasbihVirtue(); }
+    await saveCustomPhrases();
+    renderTasbihChips();
+  });
+  renderTasbihVirtue();
+}
+document.getElementById('addPhraseBtn').onclick = async ()=>{
+  const input = document.getElementById('newPhraseInput');
+  const val = input.value.trim();
+  if(!val || TASBIH_PHRASES.includes(val)) return;
+  TASBIH_PHRASES.push(val);
+  input.value = '';
+  await saveCustomPhrases();
+  renderTasbihChips();
+};
+function renderTasbihCounts(){
+  document.getElementById('tasbihCount').textContent = tasbihToday;
+  document.getElementById('tasbihToday').textContent = tasbihToday;
+  document.getElementById('tasbihTotal').textContent = tasbihTotal;
+}
+document.getElementById('tasbihCircle').onclick = async ()=>{
+  tasbihToday++; tasbihTotal++;
+  renderTasbihCounts();
+  await saveTasbih();
+};
+document.getElementById('tasbihReset').onclick = async ()=>{
+  tasbihToday = 0; renderTasbihCounts(); await saveTasbih();
+};
+
+/* ---------- stats ---------- */
+async function renderStats(){
+  const y=statsMonth.getFullYear(), m=statsMonth.getMonth();
+  document.getElementById('monthLabel').textContent = statsMonth.toLocaleDateString('ar-EG',{month:'long',year:'numeric'});
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const today = new Date();
+  const percents = [];
+  for(let d=1; d<=daysInMonth; d++){
+    const date = new Date(y,m,d);
+    if(date>today){ percents.push(null); continue; }
+    const raw = await store.get('day:'+dkey(date));
+    if(!raw){ percents.push(null); continue; }
+    const c = JSON.parse(raw);
+    const done = allItems().reduce((a,i)=>a+(c[i.id]?i.pts:0),0);
+    const tp = totalPoints();
+    percents.push(tp?Math.round((done/tp)*100):0);
+  }
+  const recorded = percents.filter(p=>p!==null);
+  const avg = recorded.length?Math.round(recorded.reduce((a,b)=>a+b,0)/recorded.length):0;
+  const best = recorded.length?Math.max(...recorded):0;
+  document.getElementById('statAvg').textContent = avg+'%';
+  document.getElementById('statBest').textContent = best+'%';
+  document.getElementById('statDone').textContent = recorded.length;
+  const chart = document.getElementById('chart'); const labels = document.getElementById('chartLabels');
+  chart.innerHTML=''; labels.innerHTML='';
+  percents.forEach((p,idx)=>{
+    const bar = document.createElement('div');
+    bar.className = 'bar'+(p===100?' full':'')+(isSameDay(new Date(y,m,idx+1),today)?' today':'');
+    bar.style.height = (p===null?2:Math.max(2,p))+'%';
+    chart.appendChild(bar);
+    const lbl = document.createElement('span'); if(idx%5===0||idx===percents.length-1) lbl.textContent = idx+1;
+    labels.appendChild(lbl);
+  });
+}
+
+/* ---------- placeholder chime (Web Audio, no external file needed) ---------- */
+function playChime(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const notes = [660, 880, 990];
+    notes.forEach((freq, i)=>{
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      osc.connect(gain); gain.connect(ctx.destination);
+      const start = ctx.currentTime + i*0.35;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.25, start+0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start+0.6);
+      osc.start(start); osc.stop(start+0.65);
+    });
+  }catch(e){}
+}
+function playAdhanSound(){
+  if(reminderCfg.audioFile){
+    const audio = new Audio(reminderCfg.audioFile);
+    audio.play().catch(()=> playChime());
+  } else {
+    playChime();
+  }
+}
+
+/* ---------- reminders ---------- */
+const PRAYER_MAP = { fajr:'Fajr', dhuhr:'Dhuhr', asr:'Asr', maghrib:'Maghrib', isha:'Isha' };
+const PRAYER_LABEL_AR = { fajr:'الفجر', dhuhr:'الظهر', asr:'العصر', maghrib:'المغرب', isha:'العشاء' };
+
+function updateReminderBtn(){ document.getElementById('remindBtn').classList.toggle('on', !!reminderCfg.enabled); }
+async function toggleReminders(){
+  if(reminderCfg.enabled){
+    reminderCfg.enabled = false;
+    scheduledTimers.forEach(t=>clearTimeout(t)); scheduledTimers=[];
+    await saveReminderCfg(); updateReminderBtn();
+    showModal('التذكيرات','اتقفلت التذكيرات.');
+    return;
+  }
+  if(!('Notification' in window)){ showModal('غير مدعوم','المتصفح ده مش بيدعم الإشعارات.'); return; }
+  const perm = await Notification.requestPermission();
+  if(perm !== 'granted'){ showModal('محتاجين إذنك','لازم توافق على إذن الإشعارات عشان التذكيرات تشتغل.'); return; }
+  if(!reminderCfg.lat){
+    await new Promise(resolve=>{
+      if(!navigator.geolocation){ resolve(); return; }
+      navigator.geolocation.getCurrentPosition(
+        (pos)=>{ reminderCfg.lat=pos.coords.latitude; reminderCfg.lng=pos.coords.longitude; resolve(); },
+        ()=>{ resolve(); }, {timeout:6000});
+    });
+  }
+  if(!reminderCfg.lat){
+    const city = prompt('مقدرش أحدد موقعك تلقائيًا. اكتب اسم مدينتك (بالإنجليزي أفضل):');
+    if(!city) return;
+    reminderCfg.city = city; reminderCfg.country = prompt('اسم الدولة:')||'';
+  }
+  reminderCfg.enabled = true;
+  await saveReminderCfg(); updateReminderBtn();
+  await scheduleTodayReminders();
+  showModal('تمام','اتفعّلت التذكيرات:\n- إشعار وقت كل أذان (بصوت مؤقت لحد ما تضيف صوت حقيقي من الإعدادات ⚙️)\n- تذكير بعد نص ساعة من كل أذان\n- ٣ إشعارات على مدار اليوم فيها آية أو حديث أو كلمة تحفيزية\n\nملاحظة: لازم صفحة التطبيق تكون شغالة أو مثبتة على الجهاز عشان الإشعارات تظهر.');
+}
+async function fetchPrayerTimes(){
+  const dateStr = `${String(currentDate.getDate()).padStart(2,'0')}-${String(currentDate.getMonth()+1).padStart(2,'0')}-${currentDate.getFullYear()}`;
+  let url;
+  if(reminderCfg.lat) url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${reminderCfg.lat}&longitude=${reminderCfg.lng}&method=4`;
+  else if(reminderCfg.city) url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(reminderCfg.city)}&country=${encodeURIComponent(reminderCfg.country||'')}&method=4`;
+  else return null;
+  try{ const res=await fetch(url); const data=await res.json(); return data.data.timings; }catch(e){ return null; }
+}
+function scheduleAt(date, fn){
+  const now = new Date();
+  if(date <= now) return;
+  const timer = setTimeout(fn, date-now);
+  scheduledTimers.push(timer);
+}
+async function scheduleTodayReminders(){
+  scheduledTimers.forEach(t=>clearTimeout(t)); scheduledTimers=[];
+  if(!reminderCfg.enabled) return;
+  const timings = await fetchPrayerTimes();
+  const nextEl = document.getElementById('nextPrayer');
+  if(!timings){ if(nextEl) nextEl.textContent='التذكيرات هتشتغل بشكل كامل بعد ما ترفع التطبيق على استضافة حقيقية.'; return; }
+  const now = new Date();
+  let nextInfo = null;
+  Object.keys(PRAYER_MAP).forEach(key=>{
+    const timeStr = timings[PRAYER_MAP[key]]; if(!timeStr) return;
+    const [h,mnt] = timeStr.split(':').map(Number);
+    const t = new Date(currentDate); t.setHours(h,mnt,0,0);
+    if(t > now){
+      if(!nextInfo || t < nextInfo.time) nextInfo = {time:t, key};
+      scheduleAt(t, ()=>{
+        playAdhanSound();
+        try{ new Notification('حان وقت صلاة '+PRAYER_LABEL_AR[key], {body:(HADITH[key]?HADITH[key].text:'حي على الصلاة'), icon:'icon-192.png'}); }catch(e){}
+      });
+      const after = new Date(t.getTime()+30*60000);
+      scheduleAt(after, ()=>{
+        try{ new Notification('تذكير', {body:`لسه واخد بالك من صلاة ${PRAYER_LABEL_AR[key]}؟ سارع قبل ما يفوتك وقتها.`, icon:'icon-192.png'}); }catch(e){}
+      });
+    }
+  });
+  // 3 rotating notifications across the day
+  const spreadHours = [10, 16, 21];
+  spreadHours.forEach((h,idx)=>{
+    const t = new Date(currentDate); t.setHours(h,0,0,0);
+    scheduleAt(t, ()=>{
+      const item = NOTIF_POOL[Math.floor(Math.random()*NOTIF_POOL.length)];
+      try{ new Notification(item.type, {body: item.text+(item.src?' — '+item.src:''), icon:'icon-192.png'}); }catch(e){}
+    });
+  });
+  if(nextEl) nextEl.textContent = nextInfo ? `الصلاة القادمة: ${PRAYER_LABEL_AR[nextInfo.key]} — ${nextInfo.time.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}` : '';
+}
+
+/* ---------- share ---------- */
+async function shareProgress(){
+  const pct = overallPercent();
+  const lines = [`محاسبتي اليومية (التزام) — ${formatLabel(currentDate)}`, `المستوى: ${LEVEL_NAMES[currentLevel]}`, `الإنجاز الكلي: ${pct}%`, ''];
+  SECTIONS.forEach(s=>{ const done=s.items.filter(i=>checks[i.id]).length; lines.push(`${s.title}: ${done}/${s.items.length}`); });
+  const text = lines.join('\n');
+  if(navigator.share){ try{ await navigator.share({title:'التزام', text}); return; }catch(e){} }
+  try{ await navigator.clipboard.writeText(text); showModal('اتنسخ ✅','اتنسخ ملخص تقدمك، تقدر تلزقه في واتساب أو أي تطبيق تاني.'); }
+  catch(e){ showModal('ملخص تقدمك', text); }
+}
+
+/* ---------- settings modal ---------- */
+function renderLevelRow(){
+  const row = document.getElementById('levelRow');
+  row.innerHTML = LEVEL_NAMES.map((name,i)=>`<div class="levelopt ${i===currentLevel?'active':''}" data-lvl="${i}">${name}</div>`).join('');
+  row.querySelectorAll('[data-lvl]').forEach(el=> el.onclick = async ()=>{
+    currentLevel = parseInt(el.dataset.lvl);
+    levelStartDate = dkey(new Date());
+    await saveLevel();
+    buildSections();
+    updateLevelBadge(); renderLevelRow();
+    await loadDay(currentDate); renderSections(); renderArc(); renderHistory();
+  });
+}
+document.getElementById('gearBtn').onclick = ()=>{
+  document.getElementById('audioFileInput').value = reminderCfg.audioFile || '';
+  renderLevelRow();
+  document.getElementById('settingsBg').classList.add('show');
+};
+document.getElementById('settingsClose').onclick = async ()=>{
+  reminderCfg.audioFile = document.getElementById('audioFileInput').value.trim() || null;
+  await saveReminderCfg();
+  document.getElementById('settingsBg').classList.remove('show');
+};
+
+/* ---------- render all / navigation ---------- */
+async function renderAll(){
+  document.getElementById('dateLabel').textContent = formatLabel(currentDate);
+  document.getElementById('jumpToday').style.display = isSameDay(currentDate,new Date())?'none':'block';
+  await loadDay(currentDate);
+  renderSections(); renderArc(); await renderHistory();
+  if(reminderCfg.enabled) scheduleTodayReminders();
+}
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', async ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-'+tab.dataset.view).classList.add('active');
+    if(tab.dataset.view==='stats') await renderStats();
+    if(tab.dataset.view==='adhkar'){ await loadAdhkar(currentDate); renderAdhTabs(); renderAdhkarTab(); }
+    if(tab.dataset.view==='tasbih'){ await loadCustomPhrases(); await loadTasbih(); renderTasbihChips(); renderTasbihCounts(); }
+  });
+});
+
+document.getElementById('prevDay').onclick = async ()=>{ currentDate=new Date(currentDate); currentDate.setDate(currentDate.getDate()-1); await renderAll(); };
+document.getElementById('nextDay').onclick = async ()=>{ currentDate=new Date(currentDate); currentDate.setDate(currentDate.getDate()+1); await renderAll(); };
+document.getElementById('jumpToday').onclick = async ()=>{ currentDate=new Date(); await renderAll(); };
+document.getElementById('resetDay').onclick = async ()=>{ checks={}; await saveDay(currentDate); await renderAll(); };
+document.getElementById('remindBtn').onclick = toggleReminders;
+document.getElementById('shareBtn').onclick = shareProgress;
+document.getElementById('prevMonth').onclick = async ()=>{ statsMonth=new Date(statsMonth); statsMonth.setMonth(statsMonth.getMonth()-1); await renderStats(); };
+document.getElementById('nextMonth').onclick = async ()=>{ statsMonth=new Date(statsMonth); statsMonth.setMonth(statsMonth.getMonth()+1); await renderStats(); };
+
+(async ()=>{
+  await loadLevel();
+  await checkAutoLevelUp();
+  updateLevelBadge();
+  await loadConfig();
+  await renderAll();
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+})();
+</script>
+</body>
+</html>
