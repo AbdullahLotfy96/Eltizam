@@ -12,14 +12,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-deep:#080b14; --bg-panel:#111729; --bg-card:#141c30; --bg-card-done:#171f2e;
-    --border-soft:rgba(255,255,255,0.07); --border-done:rgba(212,175,106,0.35);
-    --gold:#d4af6a; --gold-dim:rgba(212,175,106,0.16);
-    --text-primary:#eef1f8; --text-secondary:#8b93a7; --text-faint:#5b6478; --night:#2b3a6b;
+    --bg-deep:#0c0e22; --bg-panel:#161a3a; --bg-card:#1a1f45; --bg-card-done:#1e2450;
+    --border-soft:rgba(255,255,255,0.08); --border-done:rgba(139,156,240,0.38);
+    --gold:#8b9cf0; --gold-dim:rgba(139,156,240,0.18);
+    --text-primary:#eef0fb; --text-secondary:#9299c2; --text-faint:#5f6690; --night:#3b4694;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
-  body{background:radial-gradient(ellipse 900px 500px at 50% -10%, #16203c 0%, var(--bg-deep) 60%);color:var(--text-primary);font-family:'Tajawal',sans-serif;min-height:100vh;padding:20px 14px 60px;font-size:15.5px;}
+  body{background:radial-gradient(ellipse 900px 500px at 50% -10%, #232a68 0%, var(--bg-deep) 60%);color:var(--text-primary);font-family:'Tajawal',sans-serif;min-height:100vh;padding:20px 14px 60px;font-size:15.5px;}
   .wrap{max-width:640px;margin:0 auto;}
   header{text-align:center;margin-bottom:14px;position:relative;}
   .gear{position:absolute;left:0;top:0;width:34px;height:34px;border-radius:10px;background:var(--bg-card);border:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
@@ -28,9 +28,15 @@
   .sub{color:var(--text-secondary);font-size:14.5px;margin-top:4px;}
   .levelbadge{display:inline-block;margin-top:8px;background:var(--gold-dim);border:1px solid var(--border-done);color:var(--gold);font-size:12.5px;font-weight:700;padding:4px 14px;border-radius:20px;}
 
-  .tabs{display:flex;gap:5px;background:var(--bg-panel);border:1px solid var(--border-soft);border-radius:14px;padding:5px;margin-bottom:16px;overflow-x:auto;}
-  .tab{flex:1;white-space:nowrap;text-align:center;padding:9px 6px;border-radius:10px;font-size:13.5px;font-weight:700;color:var(--text-secondary);cursor:pointer;transition:.15s;}
-  .tab.active{background:var(--gold-dim);color:var(--gold);}
+  .navgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .navcard{border-radius:18px;padding:16px 14px;cursor:pointer;position:relative;overflow:hidden;border:1px solid var(--border-soft);min-height:78px;display:flex;flex-direction:column;justify-content:center;transition:.15s;}
+  .navcard .navicon{font-size:24px;margin-bottom:6px;}
+  .navcard .navlabel{font-weight:700;font-size:15px;color:#fff;}
+  .navcard[data-view="today"]{background:linear-gradient(135deg, #3b4694, #262c66);}
+  .navcard[data-view="adhkar"]{background:linear-gradient(135deg, #4a5cc9, #2c3480);}
+  .navcard[data-view="tasbih"]{background:linear-gradient(135deg, #6a5ccc, #3a2f80);}
+  .navcard[data-view="stats"]{background:linear-gradient(135deg, #5a6ee0, #322f78);}
+  .navcard.active{outline:2px solid var(--gold);}
   .view{display:none;} .view.active{display:block;}
 
   .datebar{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0 8px;}
@@ -39,14 +45,39 @@
   .datelabel{font-size:15.5px;font-weight:700;min-width:190px;text-align:center;}
   .todaylink{display:block;text-align:center;font-size:11px;color:var(--text-faint);margin-bottom:14px;cursor:pointer;text-decoration:underline;}
 
-  .arcpanel{background:linear-gradient(160deg, #1a2440 0%, var(--bg-panel) 55%, #201a3a 100%);border:1px solid var(--border-soft);border-radius:22px;padding:22px 18px 16px;margin-bottom:16px;position:relative;overflow:hidden;}
+  .arcpanel{background:linear-gradient(160deg, #262c66 0%, var(--bg-panel) 55%, #2c2560 100%);border:1px solid var(--border-soft);border-radius:22px;padding:22px 18px 16px;margin-bottom:16px;position:relative;overflow:hidden;}
   .arcpanel::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%, var(--gold-dim), transparent 60%);opacity:.6;pointer-events:none;}
   .arcpanel::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 90% 100%, rgba(107,142,199,0.22), transparent 55%);pointer-events:none;}
   .arc-percent{text-align:center;position:relative;}
   .arc-percent .num{font-size:38px;font-weight:900;color:var(--gold);font-family:'Amiri',serif;}
   .arc-percent .lbl{font-size:12px;color:var(--text-secondary);margin-top:-2px;}
+  .arctop-row{display:flex;align-items:center;justify-content:space-around;gap:10px;position:relative;z-index:1;}
+  .sincering{position:relative;width:92px;height:92px;flex:none;}
+  .sincering svg{width:92px;height:92px;transform:rotate(-90deg);}
+  .sincering circle{fill:none;stroke-width:7;}
+  .sincering .sr-bg{stroke:rgba(255,255,255,.09);}
+  .sincering .sr-fg{stroke:var(--gold);stroke-linecap:round;transition:stroke-dashoffset .4s;}
+  .sincering .sr-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .sincering .sr-label{font-size:10.5px;color:var(--text-secondary);}
+  .sincering .sr-value{font-size:17px;font-weight:800;color:var(--text-primary);}
   .next-prayer{text-align:center;font-size:13px;color:var(--text-secondary);margin-top:6px;position:relative;}
   .locationinfo{text-align:center;font-size:12px;color:var(--gold);margin-top:3px;position:relative;font-weight:700;}
+  .prayercard{background:linear-gradient(160deg, #262c66 0%, var(--bg-panel) 55%, #2c2560 100%);border:1px solid var(--border-soft);border-radius:22px;padding:18px 18px 20px;margin-bottom:16px;position:relative;overflow:hidden;}
+  .prayercard::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%, var(--gold-dim), transparent 60%);opacity:.6;pointer-events:none;}
+  .prayercard-head{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;}
+  .prayercard-title{font-weight:700;font-size:16px;color:var(--text-primary);display:flex;align-items:center;gap:6px;}
+  .locpill{background:rgba(255,255,255,.06);border:1px solid var(--border-soft);color:var(--text-secondary);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:20px;}
+  .prayercard-next{text-align:center;color:var(--text-secondary);font-size:14px;margin-top:18px;position:relative;z-index:1;}
+  .prayercard-time{text-align:center;color:var(--text-primary);font-weight:800;font-size:44px;margin-top:4px;position:relative;z-index:1;}
+  .prayercard-countdown{display:flex;justify-content:center;margin-top:12px;position:relative;z-index:1;}
+  .prayercard-countdown span{background:var(--gold-dim);border:1px solid var(--border-done);color:var(--gold);font-weight:800;font-size:19px;padding:8px 18px;border-radius:20px;}
+  .prayerpills{display:flex;gap:8px;justify-content:space-between;margin-top:20px;position:relative;z-index:1;}
+  .prayerpill{flex:1;text-align:center;background:rgba(255,255,255,.04);border:1px solid var(--border-soft);border-radius:16px;padding:12px 4px;}
+  .prayerpill .pname{font-size:12px;color:var(--text-secondary);margin-bottom:6px;}
+  .prayerpill .ptime{font-size:16px;font-weight:800;color:var(--text-primary);}
+  .prayerpill.active{background:var(--gold);border-color:var(--gold);}
+  .prayerpill.active .pname, .prayerpill.active .ptime{color:#12142e;}
+  .prayercard-daterow{display:flex;justify-content:space-between;margin-top:16px;font-size:12.5px;color:var(--text-faint);position:relative;z-index:1;}
   svg.arc{width:100%;height:auto;display:block;margin-top:4px;}
   .node-label,.night-label{font-size:10.5px;fill:var(--text-secondary);font-family:'Tajawal',sans-serif;font-weight:700;}
 
@@ -97,7 +128,8 @@
   .adhtab{white-space:nowrap;background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-secondary);font-size:13.5px;font-weight:700;padding:8px 14px;border-radius:20px;cursor:pointer;}
   .adhtab.active{background:var(--gold-dim);color:var(--gold);border-color:var(--border-done);}
   .adhprogress{font-size:11px;color:var(--text-faint);text-align:center;margin-bottom:12px;}
-  .adhcard{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;user-select:none;transition:.15s;}
+  .adhcard{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;user-select:none;transition:.15s;position:relative;}
+  .adhcopybtn{position:absolute;top:10px;left:10px;width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;z-index:2;}
   .adhcard:active{transform:scale(0.99);}
   .adhtext{font-size:16.5px;line-height:1.9;text-align:center;margin-bottom:10px;}
   .adhbottom{display:flex;flex-direction:column;align-items:center;gap:4px;}
@@ -138,7 +170,7 @@
   .statbox .v{font-family:'Amiri',serif;font-size:22px;color:var(--gold);font-weight:700;}
   .statbox .l{font-size:10.5px;color:var(--text-secondary);margin-top:2px;}
   .chart{display:flex;align-items:flex-end;gap:3px;height:140px;border-bottom:1px solid var(--border-soft);padding-bottom:2px;}
-  .bar{flex:1;background:rgba(212,175,106,0.25);border-radius:3px 3px 0 0;min-height:2px;}
+  .bar{flex:1;background:rgba(139,156,240,0.3);border-radius:3px 3px 0 0;min-height:2px;}
   .bar.full{background:var(--gold);}
   .bar.today{outline:1.5px solid #fff;}
   .daylabels{display:flex;gap:3px;margin-top:6px;}
@@ -172,11 +204,11 @@
     <div class="levelbadge" id="levelBadge">مبتدئ</div>
   </header>
 
-  <div class="tabs">
-    <div class="tab active" data-view="today">المحاسبة</div>
-    <div class="tab" data-view="adhkar">الأذكار</div>
-    <div class="tab" data-view="tasbih">المسبحة</div>
-    <div class="tab" data-view="stats">الإحصائيات</div>
+  <div class="navgrid">
+    <div class="navcard active" data-view="today"><div class="navicon">📋</div><div class="navlabel">المحاسبة</div></div>
+    <div class="navcard" data-view="adhkar"><div class="navicon">🌙</div><div class="navlabel">الأذكار</div></div>
+    <div class="navcard" data-view="tasbih"><div class="navicon">📿</div><div class="navlabel">المسبحة</div></div>
+    <div class="navcard" data-view="stats"><div class="navicon">📊</div><div class="navlabel">الإحصائيات</div></div>
   </div>
 
   <div class="view active" id="view-today">
@@ -188,17 +220,26 @@
     <div class="todaylink" id="jumpToday" style="display:none;">الرجوع لليوم</div>
 
     <div class="arcpanel">
-      <div class="arc-percent"><div class="num" id="percentNum">0%</div><div class="lbl">إجمالي الإنجاز</div></div>
-      <div class="next-prayer" id="nextPrayer"></div>
-      <div class="locationinfo" id="locationInfo"></div>
+      <div class="arctop-row">
+        <div class="sincering" id="sinceRing">
+          <svg viewBox="0 0 100 100">
+            <circle class="sr-bg" cx="50" cy="50" r="42"></circle>
+            <circle class="sr-fg" id="sinceRingFg" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"></circle>
+          </svg>
+          <div class="sr-text"><div class="sr-label" id="sinceRingLabel">—</div><div class="sr-value" id="sinceRingValue">—</div></div>
+        </div>
+        <div class="sincering" id="percentRing">
+          <svg viewBox="0 0 100 100">
+            <circle class="sr-bg" cx="50" cy="50" r="42"></circle>
+            <circle class="sr-fg" id="percentRingFg" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"></circle>
+          </svg>
+          <div class="sr-text"><div class="sr-value" id="percentNum" style="font-size:20px;">0%</div><div class="sr-label">إجمالي الإنجاز</div></div>
+        </div>
+      </div>
       <svg class="arc" viewBox="0 0 640 190" id="arcSvg"></svg>
       <div class="history" id="historyStrip"></div>
     </div>
 
-    <div class="toolbar">
-      <div class="toolbtn" id="remindBtn">🔔 تذكيرات الصلاة</div>
-      <div class="toolbtn" id="shareBtn">📤 مشاركة التقدم</div>
-    </div>
 
     <div id="sections"></div>
     <div class="reset-row"><button id="resetDay">إعادة ضبط هذا اليوم</button></div>
@@ -504,6 +545,9 @@ let statsMonth = new Date();
 let reminderCfg = { enabled:false, lat:null, lng:null, city:null, country:null, audioFile:null, displayCity:null, displayCountry:null, geoLat:null, geoLng:null };
 let scheduledTimers = [];
 let countdownInterval = null;
+let sinceRingInterval = null;
+let sinceRingState = { key:null, start:null, end:null };
+let todayPrayerClockTimes = null;
 let locationWatchId = null;
 let modalQueue = [];
 let modalShowing = false;
@@ -534,23 +578,50 @@ function overallPercent(){ const done=allItems().reduce((a,i)=>a+(checks[i.id]?i
 function renderArc(){
   const svg = document.getElementById('arcSvg');
   const arcNodes = SECTIONS.filter(s=>s.arcNode);
-  const nightNode = SECTIONS.find(s=>s.night);
   const w=640, baseY=120, peakLift=60, n=arcNodes.length;
   const xs = arcNodes.map((_,i)=> 60 + (w-120)*(i/(n-1)));
   const ys = arcNodes.map((_,i)=>{ const t=i/(n-1); return baseY - Math.sin(t*Math.PI)*peakLift; });
   let path = `M ${xs[0]} ${ys[0]}`;
   for(let i=1;i<xs.length;i++){ const mx=(xs[i-1]+xs[i])/2; path += ` Q ${mx} ${Math.min(ys[i-1],ys[i])-10}, ${xs[i]} ${ys[i]}`; }
-  let svgContent = `<path d="${path}" fill="none" stroke="var(--border-soft)" stroke-width="2"/><line x1="40" y1="${baseY+30}" x2="${w-40}" y2="${baseY+30}" stroke="var(--border-soft)" stroke-width="1" stroke-dasharray="3 5"/>`;
+  let svgContent = `<path id="dayPathBase" d="${path}" fill="none" stroke="var(--border-soft)" stroke-width="2"/><path id="dayPathProgress" d="${path}" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/><line x1="40" y1="${baseY+30}" x2="${w-40}" y2="${baseY+30}" stroke="var(--border-soft)" stroke-width="1" stroke-dasharray="3 5"/>`;
+  const r = 17;
   arcNodes.forEach((s,i)=>{
-    const p=sectionPercent(s), r=17, opacity=0.15+p*0.85, full=p>=1;
-    svgContent += `<circle cx="${xs[i]}" cy="${ys[i]}" r="${r}" fill="${full?'var(--gold)':'rgba(212,175,106,'+opacity.toFixed(2)+')'}" stroke="var(--gold)" stroke-width="${full?0:1}" opacity="${full?1:0.9}"/>${full?`<path d="M ${xs[i]-6} ${ys[i]} l 4 4 l 8 -8" stroke="#0a0e1a" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`:''}<text x="${xs[i]}" y="${ys[i]+r+16}" text-anchor="middle" class="node-label">${s.title}</text>`;
+    const p=sectionPercent(s), opacity=0.15+p*0.85, full=p>=1;
+    // opaque mask circle (matches panel bg) so the connecting line never shows through inside the node
+    svgContent += `<circle cx="${xs[i]}" cy="${ys[i]}" r="${r+2}" fill="var(--bg-panel)"/>`;
+    svgContent += `<circle cx="${xs[i]}" cy="${ys[i]}" r="${r}" fill="${full?'var(--gold)':'rgba(139,156,240,'+opacity.toFixed(2)+')'}" stroke="var(--gold)" stroke-width="${full?0:1}" opacity="${full?1:0.9}"/>${full?`<path d="M ${xs[i]-6} ${ys[i]} l 4 4 l 8 -8" stroke="#0a0e1a" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`:''}<text x="${xs[i]}" y="${ys[i]+r+16}" text-anchor="middle" class="node-label">${s.title}</text>`;
   });
-  if(nightNode){
-    const p=sectionPercent(nightNode), nx=xs[xs.length-1], ny=baseY+62, full=p>=1, opacity=0.15+p*0.85;
-    svgContent += `<line x1="${nx}" y1="${ys[ys.length-1]+17}" x2="${nx}" y2="${ny-14}" stroke="var(--night)" stroke-width="1.5" stroke-dasharray="2 4"/><circle cx="${nx}" cy="${ny}" r="14" fill="${full?'var(--gold)':'rgba(212,175,106,'+opacity.toFixed(2)+')'}" stroke="var(--gold)" stroke-width="${full?0:1}"/><text x="${nx}" y="${ny+30}" text-anchor="middle" class="night-label">قيام الليل</text>`;
-  }
   svg.innerHTML = svgContent;
-  document.getElementById('percentNum').textContent = overallPercent()+'%';
+  // progress overlay: reveal the accent path up to how far through today's prayers we are
+  const progPath = document.getElementById('dayPathProgress');
+  if(progPath){
+    const total = progPath.getTotalLength();
+    let frac = 0;
+    if(todayPrayerClockTimes){
+      const order = ['fajr','dhuhr','asr','maghrib','isha'];
+      const now = new Date();
+      const times = order.map(k=>todayPrayerClockTimes[k]).filter(Boolean);
+      if(times.length===order.length){
+        if(now <= times[0]) frac = 0;
+        else if(now >= times[times.length-1]) frac = 1;
+        else{
+          for(let i=0;i<times.length-1;i++){
+            if(now>=times[i] && now<=times[i+1]){
+              const segFrac = (now-times[i])/(times[i+1]-times[i]);
+              frac = (i+segFrac)/(times.length-1);
+              break;
+            }
+          }
+        }
+      }
+    }
+    progPath.setAttribute('stroke-dasharray', `${total}`);
+    progPath.setAttribute('stroke-dashoffset', `${total*(1-frac)}`);
+  }
+  const pct = overallPercent();
+  document.getElementById('percentNum').textContent = pct+'%';
+  const pctFg = document.getElementById('percentRingFg');
+  if(pctFg){ const circumference=264; pctFg.setAttribute('stroke-dashoffset', String(circumference*(1-Math.min(1,pct/100)))); }
 }
 
 /* ---------- sections render ---------- */
@@ -679,6 +750,7 @@ function renderAdhkarTab(){
     list.innerHTML = pending.map(item=>{
       const c = adhkarCounts[item.id]||0;
       return `<div class="adhcard" data-id="${item.id}">
+        <div class="adhcopybtn" data-copy="${item.id}" title="نسخ">📋</div>
         <div class="adhtext">${item.text}</div>
         <div class="adhbottom">
           <div class="adhring">${c}</div>
@@ -688,6 +760,25 @@ function renderAdhkarTab(){
       </div>`;
     }).join('');
   }
+
+  list.querySelectorAll('.adhcopybtn').forEach(btn=>{
+    btn.onclick = async (e)=>{
+      e.stopPropagation();
+      const id = btn.dataset.copy;
+      const item = cat.items.find(i=>i.id===id);
+      const text = item ? item.text : '';
+      try{
+        await navigator.clipboard.writeText(text);
+      }catch(e){
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch(e2){}
+        document.body.removeChild(ta);
+      }
+      btn.textContent = '✅';
+      setTimeout(()=>{ btn.textContent = '📋'; }, 1200);
+    };
+  });
 
   list.querySelectorAll('.adhcard').forEach(card=>{
     card.onclick = async ()=>{
@@ -856,7 +947,7 @@ function playAdhanSound(){
 const PRAYER_MAP = { fajr:'Fajr', dhuhr:'Dhuhr', asr:'Asr', maghrib:'Maghrib', isha:'Isha' };
 const PRAYER_LABEL_AR = { fajr:'الفجر', dhuhr:'الظهر', asr:'العصر', maghrib:'المغرب', isha:'العشاء' };
 
-function updateReminderBtn(){ document.getElementById('remindBtn').classList.toggle('on', !!reminderCfg.enabled); }
+function updateReminderBtn(){ const b=document.getElementById('remindBtn'); if(b) b.classList.toggle('on', !!reminderCfg.enabled); }
 async function toggleReminders(){
   if(reminderCfg.enabled){
     reminderCfg.enabled = false;
@@ -912,9 +1003,9 @@ function distanceKm(lat1, lng1, lat2, lng2){
   return R * 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 function renderLocationLine(){
-  const el = document.getElementById('locationInfo');
+  const el = document.getElementById('locPill');
   if(!el) return;
-  el.textContent = reminderCfg.displayCity ? `📍 ${reminderCfg.displayCity}${reminderCfg.displayCountry?' - '+reminderCfg.displayCountry:''}` : '';
+  el.textContent = reminderCfg.displayCity ? `📍 ${reminderCfg.displayCity}` : '📍 —';
 }
 async function updateCityFromCoords(lat, lng, force){
   if(!force && reminderCfg.geoLat!=null){
@@ -937,18 +1028,82 @@ function startWatchingLocation(){
     if(changed) await scheduleTodayReminders(); // times differ if city/timezone changed
   }, ()=>{}, {enableHighAccuracy:false, maximumAge:600000, timeout:20000});
 }
+function updateSinceRing(){
+  const fgEl = document.getElementById('sinceRingFg');
+  const lblEl = document.getElementById('sinceRingLabel');
+  const valEl = document.getElementById('sinceRingValue');
+  if(!fgEl || !sinceRingState.key || !sinceRingState.start){ if(lblEl) lblEl.textContent='—'; if(valEl) valEl.textContent='—'; return; }
+  const now = new Date();
+  const elapsedMs = now - sinceRingState.start;
+  const circumference = 264;
+  const GRACE_MS = 30*60000;
+  if(elapsedMs <= GRACE_MS){
+    // Phase 1: "since <prayer>" — ring fills up over the 30-minute window
+    const frac = Math.min(1, Math.max(0, elapsedMs/GRACE_MS));
+    fgEl.setAttribute('stroke-dashoffset', String(circumference*(1-frac)));
+    lblEl.textContent = 'منذ ' + PRAYER_LABEL_AR[sinceRingState.key];
+    const mins = Math.floor(elapsedMs/60000);
+    const h = Math.floor(mins/60), m = mins%60;
+    valEl.textContent = h>0 ? `${h}س ${m}د` : `${m}د`;
+  } else if(sinceRingState.end){
+    // Phase 2: switch to countdown until the next prayer — ring depletes as time runs out
+    const phaseStart = new Date(sinceRingState.start.getTime()+GRACE_MS);
+    const totalMs = sinceRingState.end - phaseStart;
+    const remainMs = Math.max(0, sinceRingState.end - now);
+    const frac = totalMs>0 ? Math.min(1, Math.max(0, remainMs/totalMs)) : 0;
+    fgEl.setAttribute('stroke-dashoffset', String(circumference*(1-frac)));
+    lblEl.textContent = 'الباقي لـ' + PRAYER_LABEL_AR[sinceRingState.nextKey||''];
+    const mins = Math.floor(remainMs/60000);
+    const h = Math.floor(mins/60), m = mins%60;
+    valEl.textContent = h>0 ? `${h}س ${m}د` : `${m}د`;
+  } else {
+    fgEl.setAttribute('stroke-dashoffset', '0');
+    lblEl.textContent = 'منذ ' + PRAYER_LABEL_AR[sinceRingState.key];
+    valEl.textContent = '—';
+  }
+}
+function updateDayProgress(){
+  const progPath = document.getElementById('dayPathProgress');
+  if(!progPath || !todayPrayerClockTimes) return;
+  const total = progPath.getTotalLength();
+  const order = ['fajr','dhuhr','asr','maghrib','isha'];
+  const now = new Date();
+  const times = order.map(k=>todayPrayerClockTimes[k]).filter(Boolean);
+  if(times.length!==order.length) return;
+  let frac = 0;
+  if(now <= times[0]) frac = 0;
+  else if(now >= times[times.length-1]) frac = 1;
+  else{
+    for(let i=0;i<times.length-1;i++){
+      if(now>=times[i] && now<=times[i+1]){
+        const segFrac = (now-times[i])/(times[i+1]-times[i]);
+        frac = (i+segFrac)/(times.length-1);
+        break;
+      }
+    }
+  }
+  progPath.setAttribute('stroke-dasharray', `${total}`);
+  progPath.setAttribute('stroke-dashoffset', `${total*(1-frac)}`);
+}
+function startSinceRingTicker(){
+  clearInterval(sinceRingInterval);
+  updateSinceRing();
+  updateDayProgress();
+  sinceRingInterval = setInterval(()=>{ updateSinceRing(); updateDayProgress(); }, 1000);
+}
 function startCountdown(nextTime){
   clearInterval(countdownInterval);
-  if(!nextTime) return;
-  countdownInterval = setInterval(()=>{
+  const el = document.getElementById('prayerCountdownBig');
+  if(!nextTime){ if(el) el.textContent='—'; return; }
+  const tick = ()=>{
     const diff = nextTime - new Date();
-    const nextEl = document.getElementById('nextPrayer');
     if(diff<=0){ clearInterval(countdownInterval); return; }
     const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-    const parts = (h>0?h+' س ':'') + m + ' د ' + s + ' ث';
-    if(nextEl) nextEl.dataset.countdown = parts;
-    if(nextEl && nextEl.dataset.baseText) nextEl.textContent = nextEl.dataset.baseText + ' (باقي ' + parts + ')';
-  }, 1000);
+    const pad = n=>String(n).padStart(2,'0');
+    if(el) el.textContent = h>0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  };
+  tick();
+  countdownInterval = setInterval(tick, 1000);
 }
 /* ---------- auto permission requests on launch ---------- */
 async function initPermissionsFlow(){
@@ -959,7 +1114,7 @@ async function initPermissionsFlow(){
       const perm = await Notification.requestPermission();
       notifGranted = perm === 'granted';
       if(notifGranted){
-        queueModal('تم السماح بالإشعارات ✅','هتوصلك إشعارات بمواقيت الصلاة والتذكيرات اليومية بإذن الله.');
+        queueModal('تم السماح بالإشعارات ✅','هتوصلك إشعارات بمواقيت الصلاة والتذكيرات اليومية بإذن الله.\n\nملحوظة مهمة: بعض أجهزة الأندرويد (خصوصًا الإصدارات الحديثة) بتحتاج تأكيد إضافي من إعدادات الجهاز نفسه. لو مافضلتش توصلك إشعارات خلال يوم، افتح: إعدادات الجهاز ← التطبيقات ← التزام ← الإشعارات، وتأكد إنها مفعّلة من هناك كمان.');
       }
     }
   }
@@ -989,42 +1144,92 @@ function scheduleAt(date, fn){
 }
 async function scheduleTodayReminders(){
   scheduledTimers.forEach(t=>clearTimeout(t)); scheduledTimers=[];
-  if(!reminderCfg.enabled) return;
   const timings = await fetchPrayerTimes();
-  const nextEl = document.getElementById('nextPrayer');
-  if(!timings){ if(nextEl) nextEl.textContent='التذكيرات هتشتغل بشكل كامل بعد ما ترفع التطبيق على استضافة حقيقية.'; return; }
+  const nextLabelEl = document.getElementById('prayerNextLabel');
+  const nextTimeEl = document.getElementById('prayerNextTime');
+  const pillsEl = document.getElementById('prayerPills');
+  if(!timings){ if(nextLabelEl) nextLabelEl.textContent='هتظهر المواقيت بعد ما ترفع التطبيق على استضافة حقيقية.'; return; }
   const now = new Date();
+  if(reminderCfg.enabled){
+    // catch-up: if a prayer time passed in the last 15 min while app was closed, notify now
+    Object.keys(PRAYER_MAP).forEach(key=>{
+      const timeStr = timings[PRAYER_MAP[key]]; if(!timeStr) return;
+      const [ch,cmnt] = timeStr.split(':').map(Number);
+      const pt = new Date(currentDate); pt.setHours(ch,cmnt,0,0);
+      const mins = (now-pt)/60000;
+      if(mins>=0 && mins<=15){
+        try{ new Notification('حان وقت صلاة '+PRAYER_LABEL_AR[key], {body:(HADITH[key]?HADITH[key].text:'حي على الصلاة'), icon:'icon-192.png'}); playAdhanSound(); }catch(e){}
+      }
+    });
+  }
   let nextInfo = null;
-  Object.keys(PRAYER_MAP).forEach(key=>{
+  let currentKey = null;
+  const orderedKeys = ['fajr','dhuhr','asr','maghrib','isha'];
+  const prayerTimesToday = {};
+  orderedKeys.forEach(key=>{
     const timeStr = timings[PRAYER_MAP[key]]; if(!timeStr) return;
     const [h,mnt] = timeStr.split(':').map(Number);
     const t = new Date(currentDate); t.setHours(h,mnt,0,0);
+    prayerTimesToday[key] = t;
+    if(t <= now) currentKey = key; // last prayer that already started = current period
     if(t > now){
       if(!nextInfo || t < nextInfo.time) nextInfo = {time:t, key};
-      scheduleAt(t, ()=>{
-        playAdhanSound();
-        try{ new Notification('حان وقت صلاة '+PRAYER_LABEL_AR[key], {body:(HADITH[key]?HADITH[key].text:'حي على الصلاة'), icon:'icon-192.png'}); }catch(e){}
-      });
-      const after = new Date(t.getTime()+30*60000);
-      scheduleAt(after, ()=>{
-        try{ new Notification('تذكير', {body:`لسه واخد بالك من صلاة ${PRAYER_LABEL_AR[key]}؟ سارع قبل ما يفوتك وقتها.`, icon:'icon-192.png'}); }catch(e){}
-      });
+      if(reminderCfg.enabled){
+        scheduleAt(t, ()=>{
+          playAdhanSound();
+          try{ new Notification('حان وقت صلاة '+PRAYER_LABEL_AR[key], {body:(HADITH[key]?HADITH[key].text:'حي على الصلاة'), icon:'icon-192.png'}); }catch(e){}
+        });
+        const after = new Date(t.getTime()+30*60000);
+        scheduleAt(after, ()=>{
+          try{ new Notification('تذكير', {body:`لسه واخد بالك من صلاة ${PRAYER_LABEL_AR[key]}؟ سارع قبل ما يفوتك وقتها.`, icon:'icon-192.png'}); }catch(e){}
+        });
+      }
     }
   });
-  // 3 rotating notifications across the day
-  const spreadHours = [10, 16, 21];
-  spreadHours.forEach((h,idx)=>{
-    const t = new Date(currentDate); t.setHours(h,0,0,0);
-    scheduleAt(t, ()=>{
-      const item = NOTIF_POOL[Math.floor(Math.random()*NOTIF_POOL.length)];
-      try{ new Notification(item.type, {body: item.text+(item.src?' — '+item.src:''), icon:'icon-192.png'}); }catch(e){}
+  if(reminderCfg.enabled){
+    // 3 rotating notifications across the day
+    const spreadHours = [10, 16, 21];
+    spreadHours.forEach((h,idx)=>{
+      const t = new Date(currentDate); t.setHours(h,0,0,0);
+      scheduleAt(t, ()=>{
+        const item = NOTIF_POOL[Math.floor(Math.random()*NOTIF_POOL.length)];
+        try{ new Notification(item.type, {body: item.text+(item.src?' — '+item.src:''), icon:'icon-192.png'}); }catch(e){}
+      });
     });
-  });
-  if(nextEl){
-    const baseText = nextInfo ? `الصلاة القادمة: ${PRAYER_LABEL_AR[nextInfo.key]} — ${nextInfo.time.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}` : '';
-    nextEl.dataset.baseText = baseText;
-    nextEl.textContent = baseText;
-    if(nextInfo) startCountdown(nextInfo.time); else clearInterval(countdownInterval);
+  }
+  todayPrayerClockTimes = prayerTimesToday;
+  renderArc();
+  if(currentKey){
+    sinceRingState = { key: currentKey, start: prayerTimesToday[currentKey], end: nextInfo ? nextInfo.time : null, nextKey: nextInfo ? nextInfo.key : null };
+  } else {
+    sinceRingState = { key:null, start:null, end:null };
+  }
+  startSinceRingTicker();
+  if(nextLabelEl && nextTimeEl){
+    if(nextInfo){
+      nextLabelEl.textContent = `الصلاة القادمة: ${PRAYER_LABEL_AR[nextInfo.key]}`;
+      nextTimeEl.textContent = nextInfo.time.toLocaleTimeString('ar-EG',{hour:'numeric',minute:'2-digit',hour12:true});
+      startCountdown(nextInfo.time);
+    } else {
+      nextLabelEl.textContent = 'الصلاة القادمة: الفجر (غدًا)';
+      nextTimeEl.textContent = '—';
+      clearInterval(countdownInterval);
+    }
+  }
+  if(pillsEl){
+    pillsEl.innerHTML = orderedKeys.map(key=>{
+      const t = prayerTimesToday[key];
+      const timeLabel = t ? t.toLocaleTimeString('ar-EG',{hour:'numeric',minute:'2-digit',hour12:false}) : '—';
+      const active = key===currentKey ? 'active' : '';
+      return `<div class="prayerpill ${active}"><div class="pname">${PRAYER_LABEL_AR[key]}</div><div class="ptime">${timeLabel}</div></div>`;
+    }).join('');
+  }
+  const gEl = document.getElementById('prayerDateGregorian');
+  const wEl = document.getElementById('prayerDateWeekday');
+  if(gEl && wEl){
+    const y=currentDate.getFullYear(), m=String(currentDate.getMonth()+1).padStart(2,'0'), d=String(currentDate.getDate()).padStart(2,'0');
+    gEl.textContent = `${y}-${m}-${d}`;
+    wEl.textContent = currentDate.toLocaleDateString('ar-EG',{weekday:'long'});
   }
   renderLocationLine();
 }
@@ -1073,9 +1278,9 @@ async function renderAll(){
   if(reminderCfg.enabled) scheduleTodayReminders();
 }
 
-document.querySelectorAll('.tab').forEach(tab=>{
+document.querySelectorAll('.navcard').forEach(tab=>{
   tab.addEventListener('click', async ()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.navcard').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('view-'+tab.dataset.view).classList.add('active');
@@ -1089,8 +1294,7 @@ document.getElementById('prevDay').onclick = async ()=>{ currentDate=new Date(cu
 document.getElementById('nextDay').onclick = async ()=>{ currentDate=new Date(currentDate); currentDate.setDate(currentDate.getDate()+1); await renderAll(); };
 document.getElementById('jumpToday').onclick = async ()=>{ currentDate=new Date(); await renderAll(); };
 document.getElementById('resetDay').onclick = async ()=>{ checks={}; await saveDay(currentDate); await renderAll(); };
-document.getElementById('remindBtn').onclick = toggleReminders;
-document.getElementById('shareBtn').onclick = shareProgress;
+
 document.getElementById('prevMonth').onclick = async ()=>{ statsMonth=new Date(statsMonth); statsMonth.setMonth(statsMonth.getMonth()-1); await renderStats(); };
 document.getElementById('nextMonth').onclick = async ()=>{ statsMonth=new Date(statsMonth); statsMonth.setMonth(statsMonth.getMonth()+1); await renderStats(); };
 
