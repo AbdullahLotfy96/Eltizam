@@ -29,3 +29,21 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request))
   );
 });
+
+self.addEventListener('notificationclick', (event) => {
+  const key = event.notification.data && event.notification.data.prayerKey;
+  event.notification.close();
+  if(event.action === 'no'){ return; }
+  if(!key) return;
+  event.waitUntil(
+    self.clients.matchAll({type:'window', includeUncontrolled:true}).then((clientList) => {
+      for(const client of clientList){
+        if('focus' in client){
+          client.postMessage({type:'mark-prayer', key});
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow('./index.html?markPrayer='+key);
+    })
+  );
+});
