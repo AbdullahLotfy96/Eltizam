@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>التزام</title>
+<title>Eltizam-التزام</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#080b14">
 <link rel="icon" href="icon-192.png">
@@ -129,7 +129,12 @@
   .adhtab.active{background:var(--gold-dim);color:var(--gold);border-color:var(--border-done);}
   .adhprogress{font-size:11px;color:var(--text-faint);text-align:center;margin-bottom:12px;}
   .adhcard{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;user-select:none;transition:.15s;position:relative;}
-  .adhcopybtn{position:absolute;top:10px;left:10px;width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;z-index:2;}
+  .adhcopyrow{display:flex;justify-content:flex-start;margin-top:10px;}
+  .adhcopybtn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid var(--border-soft);font-size:12.5px;color:var(--text-secondary);cursor:pointer;}
+  .adhreminder{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:12.5px;flex-wrap:wrap;}
+  .adhreminder .arlabel{color:var(--text-secondary);flex:1;min-width:120px;}
+  .adhreminder input[type=time]{background:rgba(255,255,255,.05);border:1px solid var(--border-soft);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-family:'Tajawal',sans-serif;font-size:13px;}
+  .adhreminder input[type=checkbox]{width:18px;height:18px;accent-color:var(--gold);}
   .adhcard:active{transform:scale(0.99);}
   .adhtext{font-size:16.5px;line-height:1.9;text-align:center;margin-bottom:10px;}
   .adhbottom{display:flex;flex-direction:column;align-items:center;gap:4px;}
@@ -195,6 +200,12 @@
 </style>
 </head>
 <body>
+<div id="loadingScreen" style="position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse 900px 500px at 50% -10%, #232a68 0%, #0c0e22 60%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <img src="icon-192.png" alt="التزام" style="width:96px;height:96px;border-radius:24px;box-shadow:0 0 40px rgba(139,156,240,.35);">
+  <div style="font-family:'Amiri',serif;font-weight:700;font-size:26px;color:#eef0fb;">التزام</div>
+  <div style="width:34px;height:34px;border:3px solid rgba(139,156,240,.25);border-top-color:#8b9cf0;border-radius:50%;animation:ltzm-spin 0.9s linear infinite;"></div>
+  <style>@keyframes ltzm-spin{to{transform:rotate(360deg);}}</style>
+</div>
 <div class="wrap">
   <header>
     <div class="gear" id="gearBtn">⚙️</div>
@@ -248,6 +259,7 @@
 
   <div class="view" id="view-adhkar">
     <div class="adhtabs" id="adhTabs"></div>
+    <div class="adhreminder" id="adhReminderRow"></div>
     <div class="adhprogress" id="adhProgress"></div>
     <div id="adhkarList"></div>
   </div>
@@ -288,6 +300,12 @@
 </div>
 
 <div class="modalbg" id="modalBg"><div class="modal"><h3 id="modalTitle"></h3><p id="modalText"></p><button class="close" id="modalClose">تمام</button></div></div>
+<div class="modalbg" id="confirmModalBg"><div class="modal"><h3 id="confirmModalTitle"></h3><p id="confirmModalText"></p>
+  <div style="display:flex;gap:10px;">
+    <button class="close" id="confirmYesBtn" style="flex:1;background:var(--gold);color:#12142e;">نعم ✅</button>
+    <button class="close" id="confirmNoBtn" style="flex:1;background:rgba(255,255,255,.06);">لسه</button>
+  </div>
+</div></div>
 
 <div class="modalbg" id="settingsBg">
   <div class="modal">
@@ -298,9 +316,14 @@
       <div class="levelrow" id="levelRow"></div>
     </div>
     <div class="setrow">
-      <label>ملف صوت الأذان</label>
-      <div class="desc">دلوقتي شغال بصوت مؤقت (نغمة تنبيه). لو رفعت ملف MP3 حقيقي في نفس مجلد التطبيق، اكتب اسمه هنا بالظبط (مثال: adhan.mp3).</div>
-      <input type="text" id="audioFileInput" placeholder="adhan.mp3">
+      <label>مشاركة التطبيق</label>
+      <div class="desc">شارك تطبيق "التزام" مع أصحابك وأهلك.</div>
+      <button class="close" id="shareAppBtn" style="background:var(--gold-dim);color:var(--gold);border:1px solid var(--border-done);">📤 مشاركة التطبيق</button>
+    </div>
+    <div class="setrow">
+      <label>اختبار الإشعارات</label>
+      <div class="desc">دوس الزرار ده عشان تتأكد إن الإشعارات شغالة على جهازك فورًا، من غير ما تستنى وقت أذان حقيقي.</div>
+      <button class="close" id="testNotifBtn" style="background:var(--gold-dim);color:var(--gold);border:1px solid var(--border-done);">🔔 ابعت إشعار تجريبي الآن</button>
     </div>
     <button class="close" id="settingsClose">حفظ وإغلاق</button>
   </div>
@@ -724,15 +747,58 @@ async function renderHistory(){
 
 /* ---------- adhkar tab ---------- */
 let adhkarCounts = {};
+let adhkarReminders = {};
 async function loadAdhkar(date){ const raw = await store.get('adhkar:'+dkey(date)); adhkarCounts = raw?JSON.parse(raw):{}; }
 async function saveAdhkar(date){ await store.set('adhkar:'+dkey(date), JSON.stringify(adhkarCounts)); }
+async function loadAdhkarReminders(){ const raw = await store.get('adhkarReminders'); adhkarReminders = raw?JSON.parse(raw):{}; }
+async function saveAdhkarReminders(){ await store.set('adhkarReminders', JSON.stringify(adhkarReminders)); }
 
 function renderAdhTabs(){
   const wrap = document.getElementById('adhTabs');
   wrap.innerHTML = ADHKAR_CATEGORIES.map(c=>`<div class="adhtab ${c.key===currentAdhkarTab?'active':''}" data-cat="${c.key}">${c.title}</div>`).join('');
   wrap.querySelectorAll('[data-cat]').forEach(el=> el.onclick = ()=>{
     currentAdhkarTab = el.dataset.cat;
-    renderAdhTabs(); renderAdhkarTab();
+    renderAdhTabs(); renderAdhkarTab(); renderAdhReminderRow();
+  });
+}
+function renderAdhReminderRow(){
+  const wrap = document.getElementById('adhReminderRow');
+  if(!wrap) return;
+  const cat = ADHKAR_CATEGORIES.find(c=>c.key===currentAdhkarTab);
+  if(!cat) return;
+  const cfg = adhkarReminders[cat.key] || {enabled:false, time:'09:00'};
+  wrap.innerHTML = `
+    <input type="checkbox" id="adhRemEnable" ${cfg.enabled?'checked':''}>
+    <span class="arlabel">⏰ تذكير يومي لـ"${cat.title}"</span>
+    <input type="time" id="adhRemTime" value="${cfg.time}">
+  `;
+  document.getElementById('adhRemEnable').onchange = async (e)=>{
+    adhkarReminders[cat.key] = { enabled:e.target.checked, time:document.getElementById('adhRemTime').value };
+    await saveAdhkarReminders();
+    scheduleAdhkarReminders();
+  };
+  document.getElementById('adhRemTime').onchange = async (e)=>{
+    adhkarReminders[cat.key] = { enabled:document.getElementById('adhRemEnable').checked, time:e.target.value };
+    await saveAdhkarReminders();
+    scheduleAdhkarReminders();
+  };
+}
+let adhkarReminderTimers = [];
+function scheduleAdhkarReminders(){
+  adhkarReminderTimers.forEach(t=>clearTimeout(t)); adhkarReminderTimers=[];
+  Object.keys(adhkarReminders).forEach(key=>{
+    const cfg = adhkarReminders[key];
+    if(!cfg || !cfg.enabled || !cfg.time) return;
+    const cat = ADHKAR_CATEGORIES.find(c=>c.key===key);
+    if(!cat) return;
+    const [h,m] = cfg.time.split(':').map(Number);
+    const t = new Date(); t.setHours(h,m,0,0);
+    if(t <= new Date()) t.setDate(t.getDate()+1);
+    const timer = setTimeout(()=>{
+      try{ new Notification('⏰ وقت الأذكار', {body:`حان وقت "${cat.title}" — يلا نذكر الله سوا.`, icon:'icon-192.png'}); }catch(e){}
+      scheduleAdhkarReminders(); // reschedule for tomorrow
+    }, Math.max(0, t-new Date()));
+    adhkarReminderTimers.push(timer);
   });
 }
 
@@ -750,13 +816,13 @@ function renderAdhkarTab(){
     list.innerHTML = pending.map(item=>{
       const c = adhkarCounts[item.id]||0;
       return `<div class="adhcard" data-id="${item.id}">
-        <div class="adhcopybtn" data-copy="${item.id}" title="نسخ">📋</div>
         <div class="adhtext">${item.text}</div>
         <div class="adhbottom">
           <div class="adhring">${c}</div>
           <div class="adhof">من ${item.count}</div>
         </div>
         <div class="adhvirtue">${item.virtue}</div>
+        <div class="adhcopyrow"><div class="adhcopybtn" data-copy="${item.id}" title="نسخ">📋 نسخ</div></div>
       </div>`;
     }).join('');
   }
@@ -775,8 +841,8 @@ function renderAdhkarTab(){
         try{ document.execCommand('copy'); }catch(e2){}
         document.body.removeChild(ta);
       }
-      btn.textContent = '✅';
-      setTimeout(()=>{ btn.textContent = '📋'; }, 1200);
+      btn.textContent = '✅ اتنسخ';
+      setTimeout(()=>{ btn.textContent = '📋 نسخ'; }, 1200);
     };
   });
 
@@ -1106,6 +1172,66 @@ function startCountdown(nextTime){
   countdownInterval = setInterval(tick, 1000);
 }
 /* ---------- auto permission requests on launch ---------- */
+async function sendActionableNotification(title, body, prayerKey){
+  try{
+    if('serviceWorker' in navigator){
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification(title, {
+        body, icon:'icon-192.png', data:{prayerKey},
+        actions:[{action:'yes', title:'نعم، صليت ✅'},{action:'no', title:'لسه'}]
+      });
+      return;
+    }
+  }catch(e){}
+  try{ new Notification(title, {body, icon:'icon-192.png'}); }catch(e){}
+}
+function showConfirm(title, text, onYes, onNo){
+  document.getElementById('confirmModalTitle').textContent = title;
+  document.getElementById('confirmModalText').textContent = text;
+  document.getElementById('confirmModalBg').classList.add('show');
+  const yesBtn = document.getElementById('confirmYesBtn');
+  const noBtn = document.getElementById('confirmNoBtn');
+  const cleanup = ()=>{ document.getElementById('confirmModalBg').classList.remove('show'); yesBtn.onclick=null; noBtn.onclick=null; };
+  yesBtn.onclick = ()=>{ cleanup(); if(onYes) onYes(); };
+  noBtn.onclick = ()=>{ cleanup(); if(onNo) onNo(); };
+}
+async function askMarkPrayer(prayerKey){
+  const label = PRAYER_LABEL_AR[prayerKey] || '';
+  showConfirm('هل صليت؟', `هل صليت ${label}؟`,
+    ()=>{ markPrayerDone(prayerKey); },
+    ()=>{ /* user said not yet — do nothing */ }
+  );
+}
+async function markPrayerDone(prayerKey){
+  const today = new Date();
+  const itemId = prayerKey+'_fard';
+  const isToday = dkey(currentDate)===dkey(today);
+  if(isToday){
+    checks[itemId] = true;
+    await saveDay(currentDate);
+    await renderAll();
+  } else {
+    const raw = await store.get('day:'+dkey(today));
+    const todayChecks = raw?JSON.parse(raw):{};
+    todayChecks[itemId] = true;
+    await store.set('day:'+dkey(today), JSON.stringify(todayChecks));
+  }
+  showModal('تمام ✅', 'اتسجلت صلاة '+(PRAYER_LABEL_AR[prayerKey]||'')+' في جدول المحاسبة.');
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message', (e)=>{
+    if(e.data && e.data.type==='mark-prayer'){ askMarkPrayer(e.data.key); }
+  });
+}
+(function(){
+  const params = new URLSearchParams(location.search);
+  const mp = params.get('markPrayer');
+  if(mp){
+    window.addEventListener('DOMContentLoaded', ()=>{ askMarkPrayer(mp); });
+    history.replaceState(null, '', location.pathname);
+  }
+})();
+/* ---------- auto permission requests on launch ---------- */
 async function initPermissionsFlow(){
   let notifGranted = false;
   if('Notification' in window){
@@ -1118,6 +1244,11 @@ async function initPermissionsFlow(){
       }
     }
   }
+  // reminders are enabled purely based on notification permission — never blocked by geolocation
+  if(notifGranted && !reminderCfg.enabled){
+    reminderCfg.enabled = true; updateReminderBtn();
+    await saveReminderCfg();
+  }
   if(navigator.geolocation){
     const alreadyHaveLocation = !!reminderCfg.lat;
     navigator.geolocation.getCurrentPosition(async (pos)=>{
@@ -1127,13 +1258,15 @@ async function initPermissionsFlow(){
       if(isFirstTime){
         queueModal('تم السماح بالموقع ✅', `هيتحدد مكانك تلقائيًا (${reminderCfg.displayCity||''}) وهتظهر مواقيت الصلاة الصحيحة، وهتتحدث تلقائيًا لو سافرت.`);
       }
-      if(notifGranted && !reminderCfg.enabled){
-        reminderCfg.enabled = true; updateReminderBtn();
-      }
       await saveReminderCfg();
       await scheduleTodayReminders();
       startWatchingLocation();
-    }, ()=>{ /* location permission denied or failed — silently ignore */ }, {timeout:8000});
+    }, async ()=>{
+      // location failed or denied — still schedule reminders using any previously known location
+      await scheduleTodayReminders();
+    }, {timeout:8000});
+  } else {
+    await scheduleTodayReminders();
   }
 }
 function scheduleAt(date, fn){
@@ -1181,7 +1314,7 @@ async function scheduleTodayReminders(){
         });
         const after = new Date(t.getTime()+30*60000);
         scheduleAt(after, ()=>{
-          try{ new Notification('تذكير', {body:`لسه واخد بالك من صلاة ${PRAYER_LABEL_AR[key]}؟ سارع قبل ما يفوتك وقتها.`, icon:'icon-192.png'}); }catch(e){}
+          sendActionableNotification('هل صليت؟', `هل صليت ${PRAYER_LABEL_AR[key]}؟`, key);
         });
       }
     }
@@ -1259,14 +1392,43 @@ function renderLevelRow(){
   });
 }
 document.getElementById('gearBtn').onclick = ()=>{
-  document.getElementById('audioFileInput').value = reminderCfg.audioFile || '';
   renderLevelRow();
   document.getElementById('settingsBg').classList.add('show');
 };
 document.getElementById('settingsClose').onclick = async ()=>{
-  reminderCfg.audioFile = document.getElementById('audioFileInput').value.trim() || null;
-  await saveReminderCfg();
   document.getElementById('settingsBg').classList.remove('show');
+};
+document.getElementById('shareAppBtn').onclick = async ()=>{
+  const shareData = {
+    title: 'Eltizam-التزام',
+    text: 'تطبيق "التزام" — رفيقك اليومي لمتابعة الصلاة والأذكار. جرّبه:',
+    url: location.href.split('?')[0]
+  };
+  try{
+    if(navigator.share){ await navigator.share(shareData); }
+    else{
+      await navigator.clipboard.writeText(shareData.text+' '+shareData.url);
+      showModal('تم النسخ 📋','رابط التطبيق اتنسخ، تقدر تلصقه وتبعته لأي حد.');
+    }
+  }catch(e){}
+};
+document.getElementById('testNotifBtn').onclick = async ()=>{
+  if(!('Notification' in window)){
+    showModal('غير مدعوم','المتصفح ده مش بيدعم الإشعارات.'); return;
+  }
+  if(Notification.permission !== 'granted'){
+    const perm = await Notification.requestPermission();
+    if(perm !== 'granted'){
+      showModal('الإذن مرفوض','لازم توافق على إذن الإشعارات الأول من المتصفح، وكمان تتأكد إنها مفعّلة من إعدادات الجهاز نفسه (التطبيقات ← التزام ← الإشعارات).');
+      return;
+    }
+  }
+  try{
+    new Notification('🔔 إشعار تجريبي من التزام', {body:'لو شفت الرسالة دي، يبقى الإشعارات شغالة صح على جهازك.', icon:'icon-192.png'});
+    playAdhanSound();
+  }catch(e){
+    showModal('حصل خطأ','مقدرش أبعت الإشعار. جرب تتأكد من إعدادات الإشعارات في الجهاز نفسه.');
+  }
 };
 
 /* ---------- render all / navigation ---------- */
@@ -1285,7 +1447,7 @@ document.querySelectorAll('.navcard').forEach(tab=>{
     tab.classList.add('active');
     document.getElementById('view-'+tab.dataset.view).classList.add('active');
     if(tab.dataset.view==='stats') await renderStats();
-    if(tab.dataset.view==='adhkar'){ await loadAdhkar(currentDate); renderAdhTabs(); renderAdhkarTab(); }
+    if(tab.dataset.view==='adhkar'){ await loadAdhkar(currentDate); renderAdhTabs(); renderAdhkarTab(); renderAdhReminderRow(); }
     if(tab.dataset.view==='tasbih'){ await loadCustomPhrases(); await loadTasbih(); renderTasbihChips(); renderTasbihCounts(); }
   });
 });
@@ -1305,6 +1467,10 @@ document.getElementById('nextMonth').onclick = async ()=>{ statsMonth=new Date(s
   await loadConfig();
   renderLocationLine();
   await renderAll();
+  const loadingEl = document.getElementById('loadingScreen');
+  if(loadingEl){ loadingEl.style.transition='opacity .3s'; loadingEl.style.opacity='0'; setTimeout(()=>loadingEl.remove(), 300); }
+  await loadAdhkarReminders();
+  scheduleAdhkarReminders();
   await initPermissionsFlow();
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 })();
