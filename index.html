@@ -129,8 +129,10 @@
   .adhtab.active{background:var(--gold-dim);color:var(--gold);border-color:var(--border-done);}
   .adhprogress{font-size:11px;color:var(--text-faint);text-align:center;margin-bottom:12px;}
   .adhcard{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;user-select:none;transition:.15s;position:relative;}
-  .adhcopyrow{display:flex;justify-content:flex-start;margin-top:10px;}
-  .adhcopybtn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid var(--border-soft);font-size:12.5px;color:var(--text-secondary);cursor:pointer;}
+  .adhtopbar{display:flex;align-items:center;justify-content:space-between;background:#3fc6e6;border-radius:16px;margin:-14px -14px 12px;padding:10px 16px;}
+  .adhcopybtn,.adhfavbtn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .adhcopybtn svg,.adhfavbtn svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8;}
+  .adhfavbtn.active svg{fill:#ff5c7a;stroke:#ff5c7a;}
   .adhreminder{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:12.5px;flex-wrap:wrap;}
   .adhreminder .arlabel{color:var(--text-secondary);flex:1;min-width:120px;}
   .adhreminder input[type=time]{background:rgba(255,255,255,.05);border:1px solid var(--border-soft);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-family:'Tajawal',sans-serif;font-size:13px;}
@@ -259,7 +261,6 @@
 
   <div class="view" id="view-adhkar">
     <div class="adhtabs" id="adhTabs"></div>
-    <div class="adhreminder" id="adhReminderRow"></div>
     <div class="adhprogress" id="adhProgress"></div>
     <div id="adhkarList"></div>
   </div>
@@ -324,6 +325,26 @@
       <label>اختبار الإشعارات</label>
       <div class="desc">دوس الزرار ده عشان تتأكد إن الإشعارات شغالة على جهازك فورًا، من غير ما تستنى وقت أذان حقيقي.</div>
       <button class="close" id="testNotifBtn" style="background:var(--gold-dim);color:var(--gold);border:1px solid var(--border-done);">🔔 ابعت إشعار تجريبي الآن</button>
+    </div>
+    <div class="setrow">
+      <label>تنبيهات الأذكار</label>
+      <div class="desc">فعّل تنبيه يومي لأذكار الصباح والمساء، وحدد الوقت اللي يناسبك. تقدر كمان تضيف تنبيهات إضافية لأي حاجة تانية.</div>
+      <div class="adhreminder" id="remSabahRow">
+        <input type="checkbox" id="remSabahEnable">
+        <span class="arlabel">🌅 أذكار الصباح</span>
+        <input type="time" id="remSabahTime">
+      </div>
+      <div class="adhreminder" id="remMasaaRow">
+        <input type="checkbox" id="remMasaaEnable">
+        <span class="arlabel">🌙 أذكار المساء</span>
+        <input type="time" id="remMasaaTime">
+      </div>
+      <div id="remCustomList"></div>
+      <div class="adhreminder" style="margin-top:6px;">
+        <input type="text" id="remCustomName" placeholder="اسم التنبيه (مثلاً: قبل النوم)" style="flex:1;min-width:120px;background:rgba(255,255,255,.05);border:1px solid var(--border-soft);border-radius:8px;color:var(--text-primary);padding:6px 8px;font-family:'Tajawal',sans-serif;font-size:13px;">
+        <input type="time" id="remCustomTimeNew">
+        <span id="remCustomAdd" style="cursor:pointer;background:var(--gold-dim);color:var(--gold);border:1px solid var(--border-done);border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:700;">+ إضافة</span>
+      </div>
     </div>
     <button class="close" id="settingsClose">حفظ وإغلاق</button>
   </div>
@@ -747,10 +768,23 @@ async function renderHistory(){
 
 /* ---------- adhkar tab ---------- */
 let adhkarCounts = {};
-let adhkarReminders = {};
+let favoriteAdhkar = {};
+let adhkarReminders = { sabah:{enabled:false,time:'09:00'}, masaa:{enabled:false,time:'19:30'}, custom:[] };
 async function loadAdhkar(date){ const raw = await store.get('adhkar:'+dkey(date)); adhkarCounts = raw?JSON.parse(raw):{}; }
 async function saveAdhkar(date){ await store.set('adhkar:'+dkey(date), JSON.stringify(adhkarCounts)); }
-async function loadAdhkarReminders(){ const raw = await store.get('adhkarReminders'); adhkarReminders = raw?JSON.parse(raw):{}; }
+async function loadFavoriteAdhkar(){ const raw = await store.get('favoriteAdhkar'); favoriteAdhkar = raw?JSON.parse(raw):{}; }
+async function saveFavoriteAdhkar(){ await store.set('favoriteAdhkar', JSON.stringify(favoriteAdhkar)); }
+async function loadAdhkarReminders(){
+  const raw = await store.get('adhkarReminders');
+  if(raw){
+    const parsed = JSON.parse(raw);
+    adhkarReminders = {
+      sabah: parsed.sabah || {enabled:false,time:'09:00'},
+      masaa: parsed.masaa || {enabled:false,time:'19:30'},
+      custom: Array.isArray(parsed.custom) ? parsed.custom : []
+    };
+  }
+}
 async function saveAdhkarReminders(){ await store.set('adhkarReminders', JSON.stringify(adhkarReminders)); }
 
 function renderAdhTabs(){
@@ -758,48 +792,71 @@ function renderAdhTabs(){
   wrap.innerHTML = ADHKAR_CATEGORIES.map(c=>`<div class="adhtab ${c.key===currentAdhkarTab?'active':''}" data-cat="${c.key}">${c.title}</div>`).join('');
   wrap.querySelectorAll('[data-cat]').forEach(el=> el.onclick = ()=>{
     currentAdhkarTab = el.dataset.cat;
-    renderAdhTabs(); renderAdhkarTab(); renderAdhReminderRow();
+    renderAdhTabs(); renderAdhkarTab();
   });
-}
-function renderAdhReminderRow(){
-  const wrap = document.getElementById('adhReminderRow');
-  if(!wrap) return;
-  const cat = ADHKAR_CATEGORIES.find(c=>c.key===currentAdhkarTab);
-  if(!cat) return;
-  const cfg = adhkarReminders[cat.key] || {enabled:false, time:'09:00'};
-  wrap.innerHTML = `
-    <input type="checkbox" id="adhRemEnable" ${cfg.enabled?'checked':''}>
-    <span class="arlabel">⏰ تذكير يومي لـ"${cat.title}"</span>
-    <input type="time" id="adhRemTime" value="${cfg.time}">
-  `;
-  document.getElementById('adhRemEnable').onchange = async (e)=>{
-    adhkarReminders[cat.key] = { enabled:e.target.checked, time:document.getElementById('adhRemTime').value };
-    await saveAdhkarReminders();
-    scheduleAdhkarReminders();
-  };
-  document.getElementById('adhRemTime').onchange = async (e)=>{
-    adhkarReminders[cat.key] = { enabled:document.getElementById('adhRemEnable').checked, time:e.target.value };
-    await saveAdhkarReminders();
-    scheduleAdhkarReminders();
-  };
 }
 let adhkarReminderTimers = [];
 function scheduleAdhkarReminders(){
   adhkarReminderTimers.forEach(t=>clearTimeout(t)); adhkarReminderTimers=[];
-  Object.keys(adhkarReminders).forEach(key=>{
-    const cfg = adhkarReminders[key];
-    if(!cfg || !cfg.enabled || !cfg.time) return;
-    const cat = ADHKAR_CATEGORIES.find(c=>c.key===key);
-    if(!cat) return;
-    const [h,m] = cfg.time.split(':').map(Number);
+  const fireAt = (h,m,title,body)=>{
     const t = new Date(); t.setHours(h,m,0,0);
     if(t <= new Date()) t.setDate(t.getDate()+1);
     const timer = setTimeout(()=>{
-      try{ new Notification('⏰ وقت الأذكار', {body:`حان وقت "${cat.title}" — يلا نذكر الله سوا.`, icon:'icon-192.png'}); }catch(e){}
+      try{ new Notification(title, {body, icon:'icon-192.png'}); }catch(e){}
       scheduleAdhkarReminders(); // reschedule for tomorrow
     }, Math.max(0, t-new Date()));
     adhkarReminderTimers.push(timer);
+  };
+  if(adhkarReminders.sabah && adhkarReminders.sabah.enabled && adhkarReminders.sabah.time){
+    const [h,m] = adhkarReminders.sabah.time.split(':').map(Number);
+    fireAt(h,m, '🌅 أذكار الصباح', 'حان وقت أذكار الصباح — يلا نذكر الله سوا.');
+  }
+  if(adhkarReminders.masaa && adhkarReminders.masaa.enabled && adhkarReminders.masaa.time){
+    const [h,m] = adhkarReminders.masaa.time.split(':').map(Number);
+    fireAt(h,m, '🌙 أذكار المساء', 'حان وقت أذكار المساء — يلا نذكر الله سوا.');
+  }
+  (adhkarReminders.custom||[]).forEach(rem=>{
+    if(!rem.enabled || !rem.time) return;
+    const [h,m] = rem.time.split(':').map(Number);
+    fireAt(h,m, '⏰ '+(rem.name||'تذكير'), 'حان وقت: '+(rem.name||'التذكير')+'.');
   });
+}
+function renderSettingsReminders(){
+  const sabahRow = document.getElementById('remSabahRow');
+  const masaaRow = document.getElementById('remMasaaRow');
+  if(sabahRow){
+    document.getElementById('remSabahEnable').checked = !!adhkarReminders.sabah.enabled;
+    document.getElementById('remSabahTime').value = adhkarReminders.sabah.time;
+  }
+  if(masaaRow){
+    document.getElementById('remMasaaEnable').checked = !!adhkarReminders.masaa.enabled;
+    document.getElementById('remMasaaTime').value = adhkarReminders.masaa.time;
+  }
+  const customWrap = document.getElementById('remCustomList');
+  if(customWrap){
+    customWrap.innerHTML = (adhkarReminders.custom||[]).map(rem=>`
+      <div class="adhreminder" data-id="${rem.id}">
+        <input type="checkbox" class="remCustomEnable" ${rem.enabled?'checked':''}>
+        <span class="arlabel">${rem.name}</span>
+        <input type="time" class="remCustomTime" value="${rem.time}">
+        <span class="remCustomDel" style="cursor:pointer;color:var(--text-faint);padding:4px 8px;">✕</span>
+      </div>`).join('');
+    customWrap.querySelectorAll('[data-id]').forEach(row=>{
+      const id = row.dataset.id;
+      row.querySelector('.remCustomEnable').onchange = async (e)=>{
+        const rem = adhkarReminders.custom.find(r=>r.id===id); if(rem) rem.enabled = e.target.checked;
+        await saveAdhkarReminders(); scheduleAdhkarReminders();
+      };
+      row.querySelector('.remCustomTime').onchange = async (e)=>{
+        const rem = adhkarReminders.custom.find(r=>r.id===id); if(rem) rem.time = e.target.value;
+        await saveAdhkarReminders(); scheduleAdhkarReminders();
+      };
+      row.querySelector('.remCustomDel').onclick = async ()=>{
+        adhkarReminders.custom = adhkarReminders.custom.filter(r=>r.id!==id);
+        await saveAdhkarReminders(); scheduleAdhkarReminders(); renderSettingsReminders();
+      };
+    });
+  }
 }
 
 function renderAdhkarTab(){
@@ -815,18 +872,31 @@ function renderAdhkarTab(){
   } else {
     list.innerHTML = pending.map(item=>{
       const c = adhkarCounts[item.id]||0;
+      const fav = !!favoriteAdhkar[item.id];
       return `<div class="adhcard" data-id="${item.id}">
+        <div class="adhtopbar">
+          <div class="adhcopybtn" data-copy="${item.id}" title="نسخ"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="13" height="13" rx="2.5"></rect><path d="M8 16v2.5A2.5 2.5 0 0 0 10.5 21H18a2.5 2.5 0 0 0 2.5-2.5V11A2.5 2.5 0 0 0 18 8.5h-2"></path></svg></div>
+          <div class="adhfavbtn ${fav?'active':''}" data-fav="${item.id}" title="مفضلة"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg></div>
+        </div>
         <div class="adhtext">${item.text}</div>
         <div class="adhbottom">
           <div class="adhring">${c}</div>
           <div class="adhof">من ${item.count}</div>
         </div>
         <div class="adhvirtue">${item.virtue}</div>
-        <div class="adhcopyrow"><div class="adhcopybtn" data-copy="${item.id}" title="نسخ">📋 نسخ</div></div>
       </div>`;
     }).join('');
   }
 
+  list.querySelectorAll('.adhfavbtn').forEach(btn=>{
+    btn.onclick = async (e)=>{
+      e.stopPropagation();
+      const id = btn.dataset.fav;
+      favoriteAdhkar[id] = !favoriteAdhkar[id];
+      await saveFavoriteAdhkar();
+      btn.classList.toggle('active', !!favoriteAdhkar[id]);
+    };
+  });
   list.querySelectorAll('.adhcopybtn').forEach(btn=>{
     btn.onclick = async (e)=>{
       e.stopPropagation();
@@ -841,8 +911,9 @@ function renderAdhkarTab(){
         try{ document.execCommand('copy'); }catch(e2){}
         document.body.removeChild(ta);
       }
-      btn.textContent = '✅ اتنسخ';
-      setTimeout(()=>{ btn.textContent = '📋 نسخ'; }, 1200);
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"></path></svg>';
+      setTimeout(()=>{ btn.innerHTML = originalHTML; }, 1200);
     };
   });
 
@@ -1393,10 +1464,37 @@ function renderLevelRow(){
 }
 document.getElementById('gearBtn').onclick = ()=>{
   renderLevelRow();
+  renderSettingsReminders();
   document.getElementById('settingsBg').classList.add('show');
 };
 document.getElementById('settingsClose').onclick = async ()=>{
   document.getElementById('settingsBg').classList.remove('show');
+};
+document.getElementById('remSabahEnable').onchange = async (e)=>{
+  adhkarReminders.sabah.enabled = e.target.checked;
+  await saveAdhkarReminders(); scheduleAdhkarReminders();
+};
+document.getElementById('remSabahTime').onchange = async (e)=>{
+  adhkarReminders.sabah.time = e.target.value;
+  await saveAdhkarReminders(); scheduleAdhkarReminders();
+};
+document.getElementById('remMasaaEnable').onchange = async (e)=>{
+  adhkarReminders.masaa.enabled = e.target.checked;
+  await saveAdhkarReminders(); scheduleAdhkarReminders();
+};
+document.getElementById('remMasaaTime').onchange = async (e)=>{
+  adhkarReminders.masaa.time = e.target.value;
+  await saveAdhkarReminders(); scheduleAdhkarReminders();
+};
+document.getElementById('remCustomAdd').onclick = async ()=>{
+  const nameEl = document.getElementById('remCustomName');
+  const timeEl = document.getElementById('remCustomTimeNew');
+  const name = nameEl.value.trim();
+  const time = timeEl.value;
+  if(!name || !time){ showModal('محتاج بيانات أكتر','اكتب اسم التنبيه واختار الوقت الأول.'); return; }
+  adhkarReminders.custom.push({ id:'c'+Date.now(), name, time, enabled:true });
+  await saveAdhkarReminders(); scheduleAdhkarReminders(); renderSettingsReminders();
+  nameEl.value=''; timeEl.value='';
 };
 document.getElementById('shareAppBtn').onclick = async ()=>{
   const shareData = {
@@ -1447,7 +1545,7 @@ document.querySelectorAll('.navcard').forEach(tab=>{
     tab.classList.add('active');
     document.getElementById('view-'+tab.dataset.view).classList.add('active');
     if(tab.dataset.view==='stats') await renderStats();
-    if(tab.dataset.view==='adhkar'){ await loadAdhkar(currentDate); renderAdhTabs(); renderAdhkarTab(); renderAdhReminderRow(); }
+    if(tab.dataset.view==='adhkar'){ await loadAdhkar(currentDate); renderAdhTabs(); renderAdhkarTab(); }
     if(tab.dataset.view==='tasbih'){ await loadCustomPhrases(); await loadTasbih(); renderTasbihChips(); renderTasbihCounts(); }
   });
 });
@@ -1470,6 +1568,7 @@ document.getElementById('nextMonth').onclick = async ()=>{ statsMonth=new Date(s
   const loadingEl = document.getElementById('loadingScreen');
   if(loadingEl){ loadingEl.style.transition='opacity .3s'; loadingEl.style.opacity='0'; setTimeout(()=>loadingEl.remove(), 300); }
   await loadAdhkarReminders();
+  await loadFavoriteAdhkar();
   scheduleAdhkarReminders();
   await initPermissionsFlow();
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
