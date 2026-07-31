@@ -685,7 +685,7 @@ function renderSections(){
     wrap.innerHTML = `
       <div class="section-head"><span class="ico" style="background:${accent}3a;">${section.ico}</span><h2>${section.title}</h2><span class="count">${doneCount}/${section.items.length}</span></div>
       ${hadith?`<div class="hadith">${hadith.text}<span class="src">${hadith.src}</span></div>`:''}
-      <div class="card" style="border-inline-start:4px solid ${accent}aa;background:linear-gradient(135deg, ${accent}22, var(--bg-card) 55%);">
+      <div class="card" style="border-right:4px solid ${accent}aa;background:linear-gradient(225deg, ${accent}22, var(--bg-card) 55%);">
         ${section.items.map(item=>`
           <div class="item ${checks[item.id]?'done':''}" data-id="${item.id}">
             <div class="check"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#0a0e1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -802,7 +802,7 @@ function scheduleAdhkarReminders(){
     const t = new Date(); t.setHours(h,m,0,0);
     if(t <= new Date()) t.setDate(t.getDate()+1);
     const timer = setTimeout(()=>{
-      try{ new Notification(title, {body, icon:'icon-192.png'}); }catch(e){}
+      showAppNotification(title, body);
       scheduleAdhkarReminders(); // reschedule for tomorrow
     }, Math.max(0, t-new Date()));
     adhkarReminderTimers.push(timer);
@@ -1010,11 +1010,17 @@ function renderTasbihCounts(){
   document.getElementById('tasbihToday').textContent = tasbihToday;
   document.getElementById('tasbihTotal').textContent = tasbihTotal;
 }
-document.getElementById('tasbihCircle').onclick = async ()=>{
+async function bumpTasbih(){
   tasbihToday++; tasbihTotal++;
   renderTasbihCounts();
   await saveTasbih();
-};
+}
+document.getElementById('tasbihCircle').onclick = bumpTasbih;
+document.getElementById('view-tasbih').addEventListener('click', (e)=>{
+  const ignore = e.target.closest('#phraseChips, #newPhraseInput, #addPhraseBtn, #tasbihReset, .phrasechip');
+  if(ignore || e.target.closest('#tasbihCircle')) return; // tasbihCircle already handled by its own listener
+  bumpTasbih();
+});
 document.getElementById('tasbihReset').onclick = async ()=>{
   tasbihToday = 0; renderTasbihCounts(); await saveTasbih();
 };
@@ -1254,7 +1260,7 @@ async function sendActionableNotification(title, body, prayerKey){
       return;
     }
   }catch(e){}
-  try{ new Notification(title, {body, icon:'icon-192.png'}); }catch(e){}
+  showAppNotification(title, body);
 }
 function showConfirm(title, text, onYes, onNo){
   document.getElementById('confirmModalTitle').textContent = title;
@@ -1340,6 +1346,20 @@ async function initPermissionsFlow(){
     await scheduleTodayReminders();
   }
 }
+async function showAppNotification(title, body, extraOptions){
+  const options = Object.assign({body, icon:'icon-192.png'}, extraOptions||{});
+  try{
+    if('serviceWorker' in navigator){
+      const reg = await navigator.serviceWorker.ready;
+      if(reg && reg.showNotification){
+        await reg.showNotification(title, options);
+        return true;
+      }
+    }
+  }catch(e){}
+  try{ new Notification(title, options); return true; }catch(e){}
+  return false;
+}
 function scheduleAt(date, fn){
   const now = new Date();
   if(date <= now) return;
@@ -1362,7 +1382,7 @@ async function scheduleTodayReminders(){
       const pt = new Date(currentDate); pt.setHours(ch,cmnt,0,0);
       const mins = (now-pt)/60000;
       if(mins>=0 && mins<=15){
-        try{ new Notification('حان وقت صلاة '+PRAYER_LABEL_AR[key], {body:(HADITH[key]?HADITH[key].text:'حي على الصلاة'), icon:'icon-192.png'}); playAdhanSound(); }catch(e){}
+        showAppNotification('حان وقت صلاة '+PRAYER_LABEL_AR[key], (HADITH[key]?HADITH[key].text:'حي على الصلاة')); playAdhanSound();
       }
     });
   }
@@ -1381,7 +1401,7 @@ async function scheduleTodayReminders(){
       if(reminderCfg.enabled){
         scheduleAt(t, ()=>{
           playAdhanSound();
-          try{ new Notification('حان وقت صلاة '+PRAYER_LABEL_AR[key], {body:(HADITH[key]?HADITH[key].text:'حي على الصلاة'), icon:'icon-192.png'}); }catch(e){}
+          showAppNotification('حان وقت صلاة '+PRAYER_LABEL_AR[key], (HADITH[key]?HADITH[key].text:'حي على الصلاة'));
         });
         const after = new Date(t.getTime()+30*60000);
         scheduleAt(after, ()=>{
@@ -1397,7 +1417,7 @@ async function scheduleTodayReminders(){
       const t = new Date(currentDate); t.setHours(h,0,0,0);
       scheduleAt(t, ()=>{
         const item = NOTIF_POOL[Math.floor(Math.random()*NOTIF_POOL.length)];
-        try{ new Notification(item.type, {body: item.text+(item.src?' — '+item.src:''), icon:'icon-192.png'}); }catch(e){}
+        showAppNotification(item.type, item.text+(item.src?' — '+item.src:''));
       });
     });
   }
@@ -1522,7 +1542,7 @@ document.getElementById('testNotifBtn').onclick = async ()=>{
     }
   }
   try{
-    new Notification('🔔 إشعار تجريبي من التزام', {body:'لو شفت الرسالة دي، يبقى الإشعارات شغالة صح على جهازك.', icon:'icon-192.png'});
+    await showAppNotification('🔔 إشعار تجريبي من التزام', 'لو شفت الرسالة دي، يبقى الإشعارات شغالة صح على جهازك.');
     playAdhanSound();
   }catch(e){
     showModal('حصل خطأ','مقدرش أبعت الإشعار. جرب تتأكد من إعدادات الإشعارات في الجهاز نفسه.');
