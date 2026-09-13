@@ -1,0 +1,8 @@
+   [{
+     "relation": ["delegate_permission/common.handle_all_urls"],
+     "target": {
+       "namespace": "android_app",
+       "package_name": "com.eltizam.myapp",
+       "sha256_cert_fingerprints": ["1F:99:1C:5D:66:2E:24:48:E4:2B:9F:F5:4D:40:4D:D6:B8:38:67:39:7E:82:F3:BD:8B:C4:70:E9:66:CE:76:E8"]
+     }
+   }]
